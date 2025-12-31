@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.shared.global.page;
+package com.dossantosh.springfirstmodulith.core.page;
 
 import java.io.Serializable;
 import java.util.List;
@@ -12,9 +12,9 @@ import lombok.Data;
  */
 @Data
 public class KeysetPage<T extends Serializable> implements Serializable {
-    
+
     private List<T> content;
-    
+
     private boolean hasNext;
     private boolean hasPrevious;
 
