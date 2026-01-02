@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.shared.global.errors;
+package com.dossantosh.springfirstmodulith.core.errors;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
-import com.dossantosh.springfirstmodulith.shared.global.errors.custom.BusinessException;
+import com.dossantosh.springfirstmodulith.core.errors.custom.BusinessException;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -42,16 +41,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles BadCredentialsException and returns HTTP 401 Not Found.
+     * Handles BadCredentialsException and returns HTTP 401 Unauthorized.
      *
      * @param ex      the exception
      * @param request the current web request
      * @return ResponseEntity containing ApiError with 401 status
      */
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<?> handleBadCredentials(BadCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", "Invalid username or password"));
+    public ResponseEntity<?> handleBadCredentials(BadCredentialsException ex, WebRequest request) {
+        ApiError apiError = new ApiError(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", ""));
+        return new ResponseEntity<>(apiError, HttpStatus.UNAUTHORIZED);
     }
 
     /**

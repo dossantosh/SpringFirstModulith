@@ -4,13 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.dossantosh.springfirstmodulith.shared.global.page.Direction;
-import com.dossantosh.springfirstmodulith.shared.global.page.KeysetPage;
+import com.dossantosh.springfirstmodulith.core.page.Direction;
+import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.application.dtos.FullUserDTO;
 import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
 import com.dossantosh.springfirstmodulith.users.application.services.UserService;
-
-
 
 /**
  * REST controller for managing user-related operations.

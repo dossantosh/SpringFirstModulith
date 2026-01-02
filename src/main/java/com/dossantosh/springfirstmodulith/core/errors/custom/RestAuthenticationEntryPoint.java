@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.shared.global.errors.custom;
+package com.dossantosh.springfirstmodulith.core.errors.custom;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,9 +9,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+import com.dossantosh.springfirstmodulith.core.errors.ApiError;
+
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Custom AuthenticationEntryPoint that handles 401 Unauthorized errors in REST
@@ -39,19 +39,21 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
      * @throws ServletException if a servlet-specific exception occurs
      */
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
+    public void commence(
+            HttpServletRequest request,
+            HttpServletResponse response,
             AuthenticationException authException)
             throws IOException, ServletException {
 
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
 
-        Map<String, Object> errorDetails = new HashMap<>();
-        errorDetails.put("status", 401);
-        errorDetails.put("error", "Unauthorized");
-        errorDetails.put("message", authException.getMessage());
-        errorDetails.put("path", request.getRequestURI());
+        ApiError apiError = new ApiError(
+                HttpServletResponse.SC_UNAUTHORIZED,
+                "Unauthorized",
+                authException.getMessage(),
+                request.getRequestURI());
 
-        mapper.writeValue(response.getOutputStream(), errorDetails);
+        mapper.writeValue(response.getOutputStream(), apiError);
     }
 }

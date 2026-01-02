@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.shared.global.errors.custom;
+package com.dossantosh.springfirstmodulith.core.errors.custom;
 
 /**
  * Custom exception class to represent business logic errors.

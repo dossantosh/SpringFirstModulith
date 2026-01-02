@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.shared.global.errors;
+package com.dossantosh.springfirstmodulith.core.errors;
 
 import java.time.LocalDateTime;
 import java.util.List;

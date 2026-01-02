@@ -9,8 +9,8 @@ import java.util.Set;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.dossantosh.springfirstmodulith.shared.global.page.Direction;
-import com.dossantosh.springfirstmodulith.shared.global.page.KeysetPage;
+import com.dossantosh.springfirstmodulith.core.page.Direction;
+import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.application.dtos.FullUserDTO;
 import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
 import com.dossantosh.springfirstmodulith.users.application.dtos.roles.ModulesDTO;
