@@ -10,7 +10,7 @@ INSERT INTO modules (name, image) VALUES
 ('Users', 'image'), 
 ('Perfumes', 'image') 
 ON CONFLICT (name) DO NOTHING;
-
+$2a$10$U2X7PG/yx6Oum6wU0Bva..u3KnHVmxXx5DGpeCv2D/afeRFzCCCMS
 -- Submódulos
 INSERT INTO submodules (name, id_module) VALUES
 ('ReadAll', 1),
@@ -19,4 +19,9 @@ INSERT INTO submodules (name, id_module) VALUES
 ('WriteUsers', 2),
 ('ReadPerfumes', 3),
 ('WritePerfumes', 3)
-ON CONFLICT (name, id_module) DO NOTHING;  -- if (name, id_module) is unique
+ON CONFLICT (name, id_module) DO NOTHING;
+
+-- Users
+INSERT INTO users (id_user, email, enabled, is_admin, password, username) VALUES
+(1, 'sebastiandossantosh@gmail.com', true, true, '$2a$10$fRYWPbBpdG3Snryo71URzuTk69hj7sn.Za2Z7Agc7xLbxBcExiAaq', 'dossantosh')
+ON CONFLICT (id_user, username) DO NOTHING;

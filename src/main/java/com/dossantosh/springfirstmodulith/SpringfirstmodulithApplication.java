@@ -3,7 +3,7 @@ package com.dossantosh.springfirstmodulith;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.modulith.Modulithic;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Modulithic
 @SpringBootApplication
