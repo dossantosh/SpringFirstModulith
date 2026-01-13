@@ -10,7 +10,7 @@ INSERT INTO modules (name, image) VALUES
 ('Users', 'image'), 
 ('Perfumes', 'image') 
 ON CONFLICT (name) DO NOTHING;
-$2a$10$U2X7PG/yx6Oum6wU0Bva..u3KnHVmxXx5DGpeCv2D/afeRFzCCCMS
+ 
 -- Submódulos
 INSERT INTO submodules (name, id_module) VALUES
 ('ReadAll', 1),
