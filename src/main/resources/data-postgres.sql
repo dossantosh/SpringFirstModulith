@@ -24,4 +24,4 @@ ON CONFLICT (name, id_module) DO NOTHING;
 -- Users
 INSERT INTO users (id_user, email, enabled, is_admin, password, username) VALUES
 (1, 'sebastiandossantosh@gmail.com', true, true, '$2a$10$fRYWPbBpdG3Snryo71URzuTk69hj7sn.Za2Z7Agc7xLbxBcExiAaq', 'dossantosh')
-ON CONFLICT (id_user, username) DO NOTHING;
+ON CONFLICT (username) DO NOTHING;
