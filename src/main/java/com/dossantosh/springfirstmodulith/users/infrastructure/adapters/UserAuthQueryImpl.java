@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.users.infrastructure;
+package com.dossantosh.springfirstmodulith.users.infrastructure.adapters;
 
 import java.util.List;
 import java.util.Optional;
