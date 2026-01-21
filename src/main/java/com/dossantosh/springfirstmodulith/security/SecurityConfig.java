@@ -13,12 +13,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.dossantosh.springfirstmodulith.security.custom.CustomUserDetailsService;
+import com.dossantosh.springfirstmodulith.security.custom.JsonUsernamePasswordAuthenticationFilter;
 
 import java.util.List;
 
@@ -59,7 +61,18 @@ public class SecurityConfig {
      * @throws Exception if configuration fails
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+
+        JsonUsernamePasswordAuthenticationFilter jsonLoginFilter = new JsonUsernamePasswordAuthenticationFilter();
+        jsonLoginFilter.setAuthenticationManager(authenticationManager);
+        jsonLoginFilter.setAuthenticationSuccessHandler((request, response, authentication) -> {
+            // A successful authentication will result in a session being created (IF_REQUIRED)
+            // and the SecurityContext being persisted to Spring Session.
+            response.setStatus(200);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"username\":\"" + authentication.getName() + "\"}");
+        });
+        jsonLoginFilter.setAuthenticationFailureHandler((request, response, exception) -> response.setStatus(401));
 
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -79,22 +92,36 @@ public class SecurityConfig {
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Public endpoints (adjust to your actual routes)
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // Public endpoints
+                        .requestMatchers("/api/auth/login", "/api/auth/csrf").permitAll()
 
                         // Everything else requires authentication
                         .requestMatchers("/api/**").authenticated()
 
                         .anyRequest().authenticated())
                 /**
-                 * For SPA + JSON login, keep formLogin disabled and implement your own
-                 * /auth/login controller.
-                 * If you want a classic HTML form login page instead, enable
-                 * formLogin(Customizer.withDefaults()).
+                 * For SPA + JSON login, keep formLogin disabled.
+                 *
+                 * <p>
+                 * Authentication is performed by {@link JsonUsernamePasswordAuthenticationFilter}
+                 * so Spring Security can apply session fixation protection and persist the
+                 * SecurityContext into the session.
+                 * </p>
                  */
                 .formLogin(form -> form.disable())
 
                 .httpBasic(httpBasic -> httpBasic.disable())
+
+                // Proper server-side logout for session apps:
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(204))
+                )
+
+                // JSON login filter (POST /api/auth/login)
+                .addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
