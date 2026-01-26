@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.security.custom;
+package com.dossantosh.springfirstmodulith.security.login;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +25,13 @@ import java.util.Map;
  */
 public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
+    /**
+     * Request attribute used to pass the selected data view (prod/historic)
+     * from {@link #attemptAuthentication(HttpServletRequest, HttpServletResponse)}
+     * to the AuthenticationSuccessHandler configured in {@code SecurityConfig}.
+     */
+    public static final String REQ_ATTR_DATA_VIEW = "REQ_DATA_VIEW";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public JsonUsernamePasswordAuthenticationFilter() {
@@ -47,6 +54,11 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
 
             String username = body.getOrDefault("username", "").toString();
             String password = body.getOrDefault("password", "").toString();
+
+            // Optional: the SPA can send {"view":"prod"|"historic"}.
+            // We store it on the request so the success handler can persist it into the session.
+            String view = body.getOrDefault("view", "prod").toString();
+            request.setAttribute(REQ_ATTR_DATA_VIEW, view);
 
             UsernamePasswordAuthenticationToken authRequest =
                     new UsernamePasswordAuthenticationToken(username, password);

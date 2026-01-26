@@ -42,5 +42,7 @@ public class ApiError {
         this.message = message;
         this.path = path;
         this.timestamp = LocalDateTime.now();
+
+        
     }
 }

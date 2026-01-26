@@ -1,6 +1,5 @@
 package com.dossantosh.springfirstmodulith.users.infrastructure.adapters;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -36,13 +35,9 @@ class UserAuthQueryImpl implements UserAuthQuery {
                 p.getPassword(),
                 Boolean.TRUE.equals(p.getEnabled()),
                 Boolean.TRUE.equals(p.getIsAdmin()),
-                nullSafe(p.getRoles()),
-                nullSafe(p.getModules()),
-                nullSafe(p.getSubmodules())
+                p.getRoles(),
+                p.getModules(),
+                p.getSubmodules()
         );
-    }
-
-    private List<Long> nullSafe(List<Long> value) {
-        return value == null ? List.of() : value;
     }
 }

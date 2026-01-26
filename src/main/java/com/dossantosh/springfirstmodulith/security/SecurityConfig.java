@@ -19,8 +19,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.dossantosh.springfirstmodulith.security.custom.CustomUserDetailsService;
-import com.dossantosh.springfirstmodulith.security.custom.JsonUsernamePasswordAuthenticationFilter;
+import com.dossantosh.springfirstmodulith.core.datasource.DataViewFromSessionFilter;
+import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
+import com.dossantosh.springfirstmodulith.security.login.JsonUsernamePasswordAuthenticationFilter;
 
 import java.util.List;
 
@@ -61,17 +62,36 @@ public class SecurityConfig {
      * @throws Exception if configuration fails
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager,
+            DataViewFromSessionFilter dataViewFromSessionFilter) throws Exception {
 
         JsonUsernamePasswordAuthenticationFilter jsonLoginFilter = new JsonUsernamePasswordAuthenticationFilter();
         jsonLoginFilter.setAuthenticationManager(authenticationManager);
+
         jsonLoginFilter.setAuthenticationSuccessHandler((request, response, authentication) -> {
-            // A successful authentication will result in a session being created (IF_REQUIRED)
+            // A successful authentication will result in a session being created
+            // (IF_REQUIRED)
             // and the SecurityContext being persisted to Spring Session.
+
+            // Persist the selected data view (prod/historic) into the session.
+            // The JsonUsernamePasswordAuthenticationFilter stores it as a request
+            // attribute.
+            Object rawView = request.getAttribute(JsonUsernamePasswordAuthenticationFilter.REQ_ATTR_DATA_VIEW);
+            String view = rawView == null ? "prod" : rawView.toString();
+
+            // Only allow the two supported values. Default to prod.
+            if (!"historic".equals(view)) {
+                view = "prod";
+            }
+
+            // Lock the selected view for the whole session.
+            request.getSession(true).setAttribute(DataViewFromSessionFilter.SESSION_KEY, view);
+
             response.setStatus(200);
             response.setContentType("application/json");
             response.getWriter().write("{\"username\":\"" + authentication.getName() + "\"}");
         });
+
         jsonLoginFilter.setAuthenticationFailureHandler((request, response, exception) -> response.setStatus(401));
 
         return http
@@ -103,7 +123,8 @@ public class SecurityConfig {
                  * For SPA + JSON login, keep formLogin disabled.
                  *
                  * <p>
-                 * Authentication is performed by {@link JsonUsernamePasswordAuthenticationFilter}
+                 * Authentication is performed by
+                 * {@link JsonUsernamePasswordAuthenticationFilter}
                  * so Spring Security can apply session fixation protection and persist the
                  * SecurityContext into the session.
                  * </p>
@@ -116,10 +137,13 @@ public class SecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
                         .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(204))
-                )
+                        // Spring Session can use "SESSION" cookie depending on config.
+                        // Keeping both here avoids "sticky" sessions on the client.
+                        .deleteCookies("JSESSIONID", "SESSION")
+                        .logoutSuccessHandler((req, res, auth) -> res.setStatus(204)))
 
+                // Set DataViewContext (prod/historic) for each request
+                .addFilterBefore(dataViewFromSessionFilter, UsernamePasswordAuthenticationFilter.class)
                 // JSON login filter (POST /api/auth/login)
                 .addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -148,6 +172,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    public DataViewFromSessionFilter dataViewFromSessionFilter() {
+        return new DataViewFromSessionFilter();
     }
 
     /**
