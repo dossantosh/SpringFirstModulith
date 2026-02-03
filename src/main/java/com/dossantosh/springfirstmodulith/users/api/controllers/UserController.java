@@ -50,7 +50,7 @@ public class UserController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(defaultValue = "25") int limit,
             @RequestParam(defaultValue = "NEXT") String direction) {
 
         Direction dir;

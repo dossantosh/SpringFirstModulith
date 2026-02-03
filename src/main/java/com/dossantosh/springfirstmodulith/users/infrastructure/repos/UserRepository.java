@@ -132,7 +132,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                        u.is_admin AS isAdmin
                 FROM users u
                 WHERE (:id IS NULL OR u.id_user = :id)
-                  AND (:username IS NULL OR LOWER(u.username) LIKE CONCAT(:username, '%'))
+                  AND (:username IS NULL OR LOWER(u.username) LIKE CONCAT(LOWER(:username), '%'))
                   AND (:email IS NULL OR LOWER(u.email) LIKE CONCAT(:email, '%'))
                   AND (
                       (:direction = 'NEXT' AND (:lastId IS NULL OR u.id_user > :lastId))

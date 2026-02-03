@@ -1,5 +1,7 @@
 package com.dossantosh.springfirstmodulith.users.infrastructure.adapters;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -10,7 +12,8 @@ import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserA
 import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 
 /**
- * Default implementation of {@link UserAuthQuery} backed by {@link UserRepository}.
+ * Default implementation of {@link UserAuthQuery} backed by
+ * {@link UserRepository}.
  */
 @Component
 class UserAuthQueryImpl implements UserAuthQuery {
@@ -35,9 +38,12 @@ class UserAuthQueryImpl implements UserAuthQuery {
                 p.getPassword(),
                 Boolean.TRUE.equals(p.getEnabled()),
                 Boolean.TRUE.equals(p.getIsAdmin()),
-                p.getRoles(),
-                p.getModules(),
-                p.getSubmodules()
-        );
+                emptyIfNull(p.getRoles()),
+                emptyIfNull(p.getModules()),
+                emptyIfNull(p.getSubmodules()));
+    }
+
+    private List<String> emptyIfNull(List<String> list) {
+        return list == null ? Collections.emptyList() : list;
     }
 }
