@@ -20,12 +20,12 @@ ON CONFLICT (name, id_module) DO NOTHING;
 
 -- Users
 INSERT INTO users (id_user, email, enabled, is_admin, password, username) VALUES
-(1, 'sebastiandossantosh@gmail.com', true, true,  '$2a$10$fRYWPbBpdG3Snryo71URzuTk69hj7sn.Za2Z7Agc7xLbxBcExiAaq', 'dossantosh'),
-(2, 'sebastiandossantosherrera@gmail.com', true, false, '$2a$10$fRYWPbBpdG3Snryo71URzuTk69hj7sn.Za2Z7Agc7xLbxBcExiAaq', 'sevas')
+(1, 'sebastiandossantosh@gmail.com', true, true,  '$2b$10$w.f36eR/BwE8fVuSki1bJuQfbHcwcdqUJcqWKMlntMg2c1rt2rRpO', ''),
+(2, 'sebastiandossantosherrera@gmail.com', true, false, '$2b$10$w.f36eR/BwE8fVuSki1bJuQfbHcwcdqUJcqWKMlntMg2c1rt2rRpO', 'sevas')
 ON CONFLICT (username) DO NOTHING;
 
  INSERT INTO users_roles (id_user, id_role) VALUES
-(1, 1),
+(1, 1)
 (2, 2)
 ON CONFLICT (id_user, id_role) DO NOTHING;
 
