@@ -77,34 +77,35 @@ public interface UserRepository extends JpaRepository<User, Long> {
      *         or empty if user not found
      */
     @Query(value = """
-            SELECT
-                u.id_user AS id,
-                u.username AS username,
-                u.email AS email,
-                u.password AS password,
-                u.enabled AS enabled,
-                u.is_admin AS isAdmin,
-                (
-                    SELECT array_agg(r.id_role)
-                    FROM roles r
-                    JOIN users_roles ur ON r.id_role = ur.id_role
-                    WHERE ur.id_user = u.id_user
-                ) AS roles,
-                (
-                    SELECT array_agg(m.id_module)
-                    FROM modules m
-                    JOIN users_modules um ON m.id_module = um.id_module
-                    WHERE um.id_user = u.id_user
-                ) AS modules,
-                (
-                    SELECT array_agg(s.id_submodule)
-                    FROM submodules s
-                    JOIN users_submodules us ON s.id_submodule = us.id_submodule
-                    WHERE us.id_user = u.id_user
-                ) AS submodules
-            FROM users u
-            WHERE u.username = :username
-                                """, nativeQuery = true)
+                SELECT
+                    u.id_user AS id,
+                    u.username AS username,
+                    u.email AS email,
+                    u.password AS password,
+                    u.enabled AS enabled,
+                    u.is_admin AS isAdmin,
+                    (
+                        SELECT array_agg(r.name)
+                        FROM roles r
+                        JOIN users_roles ur ON r.id_role = ur.id_role
+                        WHERE ur.id_user = u.id_user
+                    ) AS roles,
+                    (
+                        SELECT array_agg(m.name)
+                        FROM modules m
+                        JOIN users_modules um ON m.id_module = um.id_module
+                        WHERE um.id_user = u.id_user
+                    ) AS modules,
+                    (
+                        SELECT array_agg(CONCAT(m2.name, '_', s.name))
+                        FROM submodules s
+                        JOIN modules m2 ON m2.id_module = s.id_module
+                        JOIN users_submodules us ON s.id_submodule = us.id_submodule
+                        WHERE us.id_user = u.id_user
+                    ) AS submodules
+                FROM users u
+                WHERE u.username = :username
+            """, nativeQuery = true)
     Optional<UserAuthProjection> findUserAuthByUsername(String username);
 
     /**
@@ -131,7 +132,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                        u.is_admin AS isAdmin
                 FROM users u
                 WHERE (:id IS NULL OR u.id_user = :id)
-                  AND (:username IS NULL OR LOWER(u.username) LIKE CONCAT(:username, '%'))
+                  AND (:username IS NULL OR LOWER(u.username) LIKE CONCAT(LOWER(:username), '%'))
                   AND (:email IS NULL OR LOWER(u.email) LIKE CONCAT(:email, '%'))
                   AND (
                       (:direction = 'NEXT' AND (:lastId IS NULL OR u.id_user > :lastId))

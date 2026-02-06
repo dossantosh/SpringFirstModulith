@@ -7,20 +7,13 @@ import java.util.List;
  */
 public interface UserAuthProjection {
     Long getId();
-
     String getUsername();
-
     String getEmail();
-
     String getPassword();
-
     Boolean getEnabled();
-
     Boolean getIsAdmin();
 
-    List<Long> getRoles();
-
-    List<Long> getModules();
-
-    List<Long> getSubmodules();
+    List<String> getRoles();
+    List<String> getModules();
+    List<String> getSubmodules();
 }

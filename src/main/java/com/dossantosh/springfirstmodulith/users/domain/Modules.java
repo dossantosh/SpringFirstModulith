@@ -27,9 +27,6 @@ public class Modules implements Serializable {
     @Column(unique = true, length = 50, nullable = false)
     private String name;
 
-    @Column(length = 50)
-    private String image;
-
     @ManyToMany(mappedBy = "modules")
     private List<User> users = new ArrayList<>();
 

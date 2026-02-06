@@ -241,7 +241,13 @@ public class UserService {
      */
     public void modifyUser(User user, User existingUser) {
 
-        if (user.getId() == null) {
+        if (user.getRoles() == null || user.getRoles().isEmpty()
+                || user.getModules() == null || user.getModules().isEmpty()
+                || user.getSubmodules() == null || user.getSubmodules().isEmpty()) {
+            return;
+        }
+
+        if (user.getId() == null || user.getId().toString().isEmpty()) {
             user.setId(existingUser.getId());
         }
 
@@ -257,13 +263,6 @@ public class UserService {
             user.setPassword(existingUser.getPassword());
         }
 
-        if (user.getRoles() == null || user.getModules() == null || user.getSubmodules() == null) {
-            return;
-        }
-
-        if (user.getRoles().isEmpty() || user.getModules().isEmpty() || user.getSubmodules().isEmpty()) {
-            return;
-        }
         saveUser(user);
     }
 

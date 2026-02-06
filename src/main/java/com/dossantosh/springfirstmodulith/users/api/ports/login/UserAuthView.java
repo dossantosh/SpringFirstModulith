@@ -12,7 +12,7 @@ public record UserAuthView(
         String password,
         boolean enabled,
         boolean isAdmin,
-        List<Long> roles,
-        List<Long> modules,
-        List<Long> submodules
+        List<String> roles,
+        List<String> modules,
+        List<String> submodules
 ) {}

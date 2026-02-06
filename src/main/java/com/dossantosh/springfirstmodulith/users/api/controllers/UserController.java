@@ -2,6 +2,7 @@ package com.dossantosh.springfirstmodulith.users.api.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.dossantosh.springfirstmodulith.core.page.Direction;
@@ -22,6 +23,7 @@ import com.dossantosh.springfirstmodulith.users.application.services.UserService
  */
 @RestController
 @RequiredArgsConstructor
+@PreAuthorize("hasAuthority('MODULE_USERS')")
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -48,7 +50,7 @@ public class UserController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
             @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(defaultValue = "25") int limit,
             @RequestParam(defaultValue = "NEXT") String direction) {
 
         Direction dir;
