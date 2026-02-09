@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.core.datasource;
+package com.dossantosh.springfirstmodulith.core.datasource.runtime;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
