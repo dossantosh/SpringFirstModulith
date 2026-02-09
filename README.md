@@ -2,24 +2,24 @@
 
 ## 📖 Table of Contents
 
-- [📌 Project Overview](#-project-overview)  
-- [✨ Features](#-features)  
-  - [👥 User & Security](#-user--security)  
-  - [🌐 Web & API](#-web--api)  
-  - [📦 Architecture](#-architecture)  
-  - [📊 Reports & Exports](#-reports--exports)  
-  - [⚙️ Dev & Ops](#️-dev--ops)  
-- [🗂️ Project Structure](#️-project-structure)  
-- [🛠️ Tech Stack](#️-tech-stack)  
-- [🧾 Environment Configuration (.env)](#-environment-configuration-env)  
-- [⚙️ Application Properties](#️-application-properties)  
+- [📌 Project Overview](#-project-overview)
+- [✨ Features](#-features)
+  - [👥 User & Security](#-user--security)
+  - [🌐 Web & API](#-web--api)
+  - [📦 Architecture](#-architecture)
+  - [📊 Reports & Exports](#-reports--exports)
+  - [⚙️ Dev & Ops](#️-dev--ops)
+- [🗂️ Project Structure](#️-project-structure)
+- [🛠️ Tech Stack](#️-tech-stack)
+- [🧾 Environment Configuration (.env)](#-environment-configuration-env)
+- [⚙️ Application Properties](#️-application-properties)
 - [🚀 Getting Started (Docker-first)](#-getting-started-docker-first)
 - [🐳 Docker Compose (DB + App)](#-docker-compose-db--app)
 - [🔒 Security Notes](#-security-notes)
 - [🧪 Testing with Docker](#-testing-with-docker)
-- [👤 Author](#-author)  
-- [📬 Contact](#-contact)  
-- [🙏 Acknowledgements](#-acknowledgements)  
+- [👤 Author](#-author)
+- [📬 Contact](#-contact)
+- [🙏 Acknowledgements](#-acknowledgements)
 
 ---
 
@@ -36,6 +36,7 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 ## ✨ Features
 
 ### 👥 User & Security
+
 - User authentication and session handling
 - Centralized security module
 - Authentication controllers isolated in a dedicated module
@@ -44,28 +45,82 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 - Module boundaries enforced at package level
 
 ### 🌐 Web & API
+
 - RESTful endpoints for authentication and domain access
 - DTO-based API design
 - Filter-based request context handling
 - Separation between API, domain, and infrastructure layers
 
 ### 📦 Architecture
-- **Spring Modulith architecture: Ports and Adapters**
-- Explicit domain modules:
-- **Auth module** isolated to handle authentication flows and entrypoints, avoiding leakage of security concerns into domain logic.
-- **Users module** encapsulates the core user domain and business rules, remaining independent through ports and adapters.
-- **Perfumes module** owns product/catalog logic, preventing coupling with identity or security responsibilities.
-- **Security module** centralizes technical security configuration and enforcement, separated from business meaning.
-- **Shared infrastructure isolated in the `core` module**, keeping technical concerns reusable and domain-agnostic and viceversa.
-- **Module boundaries defined via `package-info.java`**, making architectural rules explicit and enforceable.
-- **Architecture tests preventing illegal dependencies**, ensuring modules interact only through approved contracts.
-- **Routing datasource and session-aware configuration**, supporting multi-context data access without polluting domain modules.
 
+**Auth Module:** Authentication entrypoints and login flows
+
+- Handles login, logout, and authentication-related controllers
+- Does _not_ contain business or security policy logic
+- Prevents authentication concerns from leaking into domain modules
+
+---
+
+**Users Module:** Core user domain and business rules
+
+- Encapsulates user entities, use cases, and domain behavior
+- Exposes functionality through **ports**
+- Uses adapters for persistence and external integrations
+- Remains independent from authentication and security infrastructure
+
+---
+
+**Perfumes Module:** Product and catalog domain
+
+- Owns product-related business logic
+- Completely decoupled from identity, authentication, and security concerns
+- Can evolve independently without impacting other domains
+
+---
+
+**Security Module:** Technical security enforcement
+
+- Centralizes Spring Security configuration
+- Handles filters, session handling, and authorization rules
+- Contains _technical_ security concerns only
+- Does not encode business meaning or domain logic
+
+---
+
+**Core Module:** contains **domain-agnostic technical infrastructure**, such as:
+
+- Datasource routing
+- Error handling primitives
+- Pagination and shared technical utilities
+
+This:
+
+- Is reusable across domains
+- Contains no business rules
+- Exists to support, not control, domain modules
+
+---
+
+**Boundaries Enforcement:**
+## 📦 Module Boundaries & Enforcement
+
+- **Module boundaries are explicitly declared** using `package-info.java`
+- Dependencies between modules are intentional and documented
+- **Spring Modulith architecture tests** prevent:
+  - Illegal dependencies
+  - Accidental cross-module coupling
+  - Infrastructure leaking into domain logic
+
+This ensures the architecture stays clean as the system grows.
+
+---
 
 ### 📊 Reports & Exports
+
 - Not implemented yet
 
 ### ⚙️ Dev & Ops
+
 - `.env` support for local configuration
 - SQL initialization configuration
 - Session-based datasource routing
@@ -139,7 +194,7 @@ src/main/resources/db
 Below is a detailed breakdown of the technologies used and their purpose within the system.
 
 | Stack                             | Description                                                   |
-|-----------------------------------|---------------------------------------------------------------|
+| --------------------------------- | ------------------------------------------------------------- |
 | **Java 25**                       | Language level configured for compilation and runtime         |
 | **Spring Boot 4.0.2**             | Core application framework and dependency management          |
 | **Spring Web**                    | REST endpoints and MVC support                                |
@@ -215,6 +270,7 @@ The application uses **three logical datasources**, each backed by PostgreSQL:
 - **session** → Spring Session JDBC storage
 
 #### Main (Transactional) Datasource
+
 ```properties
 app.datasource.prod.url=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
 app.datasource.prod.username=${DB_USER}
@@ -225,6 +281,7 @@ app.datasource.prod.hikari.idle-timeout=50000
 ```
 
 #### Historic Datasource
+
 ```properties
 app.datasource.historic.url=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_HIST_NAME}
 app.datasource.historic.username=${DB_USER}
@@ -238,6 +295,7 @@ app.datasource.historic.hikari.idle-timeout=50000
 - Intended for audit, history, and reporting
 
 #### Session Datasource
+
 ```properties
 app.datasource.session.url=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
 app.datasource.session.username=${DB_USER}
@@ -425,12 +483,14 @@ The application will start on:
 The application ships with **pre-seeded users** for development:
 
 **Admin**
+
 - Username: `dossantosh`
 - Password: `password`
 - Role: `ADMIN`
 - Modules: Users, Perfumes
 
 **Regular user**
+
 - Username: `sevas`
 - Password: `password`
 - Role: `USER`
@@ -485,9 +545,25 @@ volumes:
   pgdata:
 ```
 
+### docker-compose.dev.yml
+
+```yaml
+services:
+  backend:
+    build:
+      context: ../../SpringFirstModulith
+    image: springfirstmodulith:dev
+
+  frontend:
+    build:
+      context: ../../AngularModulith
+    image: angularmodulith:dev
+```
+
 ### Init script for historic DB
 
 **docker/initdb/01-create-historic-db.sql**
+
 ```sql
 -- Create historic DB (only if it doesn't exist)
 SELECT 'CREATE DATABASE "SpringFirstModulithDBHistoric"'
@@ -498,6 +574,12 @@ Run everything:
 
 ```sh
 docker compose up --build
+```
+
+Run in dev
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
 Stop containers:
@@ -543,13 +625,13 @@ Sebastián Dos Santos
 
 ## 📬 Contact
 
-- GitHub: https://github.com/dossantosh  
-- LinkedIn: https://www.linkedin.com/in/dossantosh/  
-- Email: sebastiandossantosh@gmail.com  
+- GitHub: https://github.com/dossantosh
+- LinkedIn: https://www.linkedin.com/in/dossantosh/
+- Email: sebastiandossantosh@gmail.com
 
 ---
 
 ## 🙏 Acknowledgements
 
-- Spring Modulith team and documentation  
-- Clean Architecture & Modular Monolith community  
+- Spring Modulith team and documentation
+- Clean Architecture & Modular Monolith community
