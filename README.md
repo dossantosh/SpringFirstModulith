@@ -59,8 +59,6 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 - Does _not_ contain business or security policy logic
 - Prevents authentication concerns from leaking into domain modules
 
----
-
 **Users Module:** Core user domain and business rules
 
 - Encapsulates user entities, use cases, and domain behavior
@@ -68,15 +66,11 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 - Uses adapters for persistence and external integrations
 - Remains independent from authentication and security infrastructure
 
----
-
 **Perfumes Module:** Product and catalog domain
 
 - Owns product-related business logic
 - Completely decoupled from identity, authentication, and security concerns
 - Can evolve independently without impacting other domains
-
----
 
 **Security Module:** Technical security enforcement
 
@@ -84,8 +78,6 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 - Handles filters, session handling, and authorization rules
 - Contains _technical_ security concerns only
 - Does not encode business meaning or domain logic
-
----
 
 **Core Module:** contains **domain-agnostic technical infrastructure**, such as:
 
@@ -99,10 +91,7 @@ This:
 - Contains no business rules
 - Exists to support, not control, domain modules
 
----
-
 **Boundaries Enforcement:**
-## 📦 Module Boundaries & Enforcement
 
 - **Module boundaries are explicitly declared** using `package-info.java`
 - Dependencies between modules are intentional and documented
