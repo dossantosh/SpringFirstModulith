@@ -496,42 +496,45 @@ You can run the entire stack using Docker Compose.
 
 ```yaml
 services:
-  postgres:
+  db:
     image: postgres:17
-    container_name: springfirstmodulith-postgres
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: secret
       POSTGRES_DB: SpringFirstModulithDB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Sb202582
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./docker/initdb:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d SpringFirstModulithDB"]
-      interval: 5s
-      retries: 20
+      - db_data:/var/lib/postgresql/data
+      - ./01-create-historic-db.sql:/docker-entrypoint-initdb.d/01-create-historic-db.sql:ro
 
-  app:
-    build: .
-    container_name: springfirstmodulith-app
-    depends_on:
-      postgres:
-        condition: service_healthy
+  backend:
+    image: ghcr.io/dossantosh/springfirstmodulith:main
+    #image: ghcr.io/dossantosh/springfirstmodulith:flywayImplementation
     environment:
-      DB_HOST: postgres
+      #SPRING_SESSION_JDBC_INITIALIZE_SCHEMA: never
+      DB_HOST: db
       DB_PORT: 5432
       DB_NAME: SpringFirstModulithDB
       DB_HIST_NAME: SpringFirstModulithDBHistoric
-      DB_USER: user
-      DB_PASSWORD: secret
+      DB_USER: postgres
+      DB_PASSWORD: Sb202582
       SERVER_PORT: 9090
     ports:
       - "9090:9090"
+    depends_on:
+      - db
+
+  frontend:
+    image: ghcr.io/dossantosh/angularmodulith:main
+    #image: ghcr.io/dossantosh/angularmodulith:Database-Runtime-Routing
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
 
 volumes:
-  pgdata:
+  db_data:
 ```
 
 ### docker-compose.dev.yml
