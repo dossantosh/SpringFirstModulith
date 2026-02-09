@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.core.datasource;
+package com.dossantosh.springfirstmodulith.core.datasource.runtime;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

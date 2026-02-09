@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.core.datasource;
+package com.dossantosh.springfirstmodulith.core.datasource.runtime;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.context.properties.ConfigurationProperties;

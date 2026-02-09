@@ -19,7 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.dossantosh.springfirstmodulith.core.datasource.DataViewFromSessionFilter;
+import com.dossantosh.springfirstmodulith.core.datasource.runtime.DataViewFromSessionFilter;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
 import com.dossantosh.springfirstmodulith.security.login.JsonUsernamePasswordAuthenticationFilter;
 

@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.core.datasource;
+package com.dossantosh.springfirstmodulith.core.datasource.runtime;
 
 /**
  * Holds the current "data view" for the ongoing request.

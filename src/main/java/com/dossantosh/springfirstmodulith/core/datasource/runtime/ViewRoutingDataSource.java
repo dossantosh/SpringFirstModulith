@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.core.datasource;
+package com.dossantosh.springfirstmodulith.core.datasource.runtime;
 
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
