@@ -2,14 +2,11 @@ package com.dossantosh.springfirstmodulith.users;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -20,11 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.dossantosh.springfirstmodulith.core.errors.custom.BusinessException;
-import com.dossantosh.springfirstmodulith.core.page.Direction;
-import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
-import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
 import com.dossantosh.springfirstmodulith.users.application.services.DefaultUserAccessPolicyService;
-import com.dossantosh.springfirstmodulith.users.application.services.UserService;
+import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
 import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.Submodules;
@@ -34,11 +28,10 @@ import com.dossantosh.springfirstmodulith.users.infrastructure.entities.ModuleJp
 import com.dossantosh.springfirstmodulith.users.infrastructure.entities.RoleJpaEntity;
 import com.dossantosh.springfirstmodulith.users.infrastructure.entities.SubmoduleJpaEntity;
 import com.dossantosh.springfirstmodulith.users.infrastructure.entities.UserJpaEntity;
-import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserCommandServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -47,116 +40,7 @@ class UserServiceTest {
     private DefaultUserAccessPolicyService defaultUserAccessPolicyService;
 
     @InjectMocks
-    private UserService userService;
-
-    @Test
-    void findUsersKeyset_next_firstPage_hasMore_setsCursorsAndFlags() {
-        int limit = 2;
-
-        UserProjection p1 = mock(UserProjection.class);
-        when(p1.getId()).thenReturn(10L);
-        when(p1.getUsername()).thenReturn("u1");
-        when(p1.getEmail()).thenReturn("e1");
-        when(p1.getEnabled()).thenReturn(true);
-        when(p1.getIsAdmin()).thenReturn(false);
-
-        UserProjection p2 = mock(UserProjection.class);
-        when(p2.getId()).thenReturn(11L);
-        when(p2.getUsername()).thenReturn("u2");
-        when(p2.getEmail()).thenReturn("e2");
-        when(p2.getEnabled()).thenReturn(true);
-        when(p2.getIsAdmin()).thenReturn(false);
-
-        UserProjection extra = mock(UserProjection.class);
-
-        when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
-                .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
-
-        KeysetPage<UserDTO> page = userService.findUsersKeyset(null, null, null, null, limit, Direction.NEXT);
-
-        assertThat(page.getContent()).extracting(UserDTO::getId).containsExactly(10L, 11L);
-        assertThat(page.getNextId()).isEqualTo(11L);
-        assertThat(page.getPreviousId()).isEqualTo(10L);
-        assertThat(page.isHasNext()).isTrue();
-        assertThat(page.isHasPrevious()).isFalse();
-    }
-
-    @Test
-    void findUsersKeyset_next_firstPage_noMore_setsHasNextFalse() {
-        int limit = 2;
-
-        UserProjection p1 = mock(UserProjection.class);
-        when(p1.getId()).thenReturn(10L);
-        when(p1.getUsername()).thenReturn("u1");
-        when(p1.getEmail()).thenReturn("e1");
-        when(p1.getEnabled()).thenReturn(true);
-        when(p1.getIsAdmin()).thenReturn(false);
-
-        UserProjection p2 = mock(UserProjection.class);
-        when(p2.getId()).thenReturn(11L);
-        when(p2.getUsername()).thenReturn("u2");
-        when(p2.getEmail()).thenReturn("e2");
-        when(p2.getEnabled()).thenReturn(true);
-        when(p2.getIsAdmin()).thenReturn(false);
-
-        when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
-                .thenReturn(new ArrayList<>(List.of(p1, p2)));
-
-        KeysetPage<UserDTO> page = userService.findUsersKeyset(null, null, null, null, limit, Direction.NEXT);
-
-        assertThat(page.getContent()).extracting(UserDTO::getId).containsExactly(10L, 11L);
-        assertThat(page.isHasNext()).isFalse();
-        assertThat(page.isHasPrevious()).isFalse();
-    }
-
-    @Test
-    void findUsersKeyset_previous_hasMore_reversesToAscending_andSetsFlags() {
-        int limit = 2;
-        Long lastId = 20L;
-
-        UserProjection p1 = mock(UserProjection.class);
-        when(p1.getId()).thenReturn(11L);
-        when(p1.getUsername()).thenReturn("u2");
-        when(p1.getEmail()).thenReturn("u2@x.com");
-        when(p1.getEnabled()).thenReturn(true);
-        when(p1.getIsAdmin()).thenReturn(false);
-
-        UserProjection p2 = mock(UserProjection.class);
-        when(p2.getId()).thenReturn(10L);
-        when(p2.getUsername()).thenReturn("u1");
-        when(p2.getEmail()).thenReturn("u1@x.com");
-        when(p2.getEnabled()).thenReturn(true);
-        when(p2.getIsAdmin()).thenReturn(false);
-
-        UserProjection extra = mock(UserProjection.class);
-
-        when(userRepository.findUsersKeyset(null, null, null, lastId, limit + 1, Direction.PREVIOUS.name()))
-                .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
-
-        KeysetPage<UserDTO> page = userService.findUsersKeyset(null, null, null, lastId, limit, Direction.PREVIOUS);
-
-        assertThat(page.getContent()).extracting(UserDTO::getId).containsExactly(10L, 11L);
-        assertThat(page.getPreviousId()).isEqualTo(10L);
-        assertThat(page.getNextId()).isEqualTo(11L);
-        assertThat(page.isHasPrevious()).isTrue();
-        assertThat(page.isHasNext()).isTrue();
-    }
-
-    @Test
-    void findUsersKeyset_whenNoResults_returnsEmptyPageWithNullCursors() {
-        int limit = 10;
-
-        when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
-                .thenReturn(new ArrayList<>());
-
-        KeysetPage<UserDTO> page = userService.findUsersKeyset(null, null, null, null, limit, Direction.NEXT);
-
-        assertThat(page.getContent()).isEmpty();
-        assertThat(page.getNextId()).isNull();
-        assertThat(page.getPreviousId()).isNull();
-        assertThat(page.isHasNext()).isFalse();
-        assertThat(page.isHasPrevious()).isFalse();
-    }
+    private UserCommandService userCommandService;
 
     @Test
     void modifyUser_whenValidChangesProvided_updatesExistingAggregateAndSaves() {
@@ -173,7 +57,7 @@ class UserServiceTest {
         incoming.setEnabled(false);
         incoming.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers)));
 
-        userService.modifyUser(incoming, existing);
+        userCommandService.modifyUser(incoming, existing);
 
         ArgumentCaptor<UserJpaEntity> captor = ArgumentCaptor.forClass(UserJpaEntity.class);
         verify(userRepository, times(1)).save(captor.capture());
@@ -199,7 +83,7 @@ class UserServiceTest {
         User incoming = new User();
         incoming.setEmail("new@x.com");
 
-        assertThatThrownBy(() -> userService.modifyUser(incoming, existing))
+        assertThatThrownBy(() -> userCommandService.modifyUser(incoming, existing))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("at least one role");
 
@@ -217,7 +101,7 @@ class UserServiceTest {
 
         User newUser = new User("john", "john@x.com", "secret", false);
 
-        userService.createUser(newUser);
+        userCommandService.createUser(newUser);
 
         ArgumentCaptor<UserJpaEntity> captor = ArgumentCaptor.forClass(UserJpaEntity.class);
         verify(userRepository).save(captor.capture());
@@ -241,7 +125,7 @@ class UserServiceTest {
         User newUser = new User("john", "john@x.com", "secret", true);
         newUser.replaceAccess(UserAccess.of(Set.of(adminRole), Set.of(adminModule), Set.of(manageUsers)));
 
-        userService.createUser(newUser);
+        userCommandService.createUser(newUser);
 
         ArgumentCaptor<UserJpaEntity> captor = ArgumentCaptor.forClass(UserJpaEntity.class);
         verify(userRepository).save(captor.capture());

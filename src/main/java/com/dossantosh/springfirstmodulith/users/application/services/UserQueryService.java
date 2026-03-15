@@ -18,7 +18,6 @@ import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.User;
-import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import com.dossantosh.springfirstmodulith.users.infrastructure.mappers.UserMapper;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
@@ -29,10 +28,9 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
-public class UserService {
+public class UserQueryService {
 
     private final UserRepository userRepository;
-    private final DefaultUserAccessPolicyService defaultUserAccessPolicyService;
 
     public KeysetPage<UserDTO> findUsersKeyset(Long id, String username, String email, Long lastId, int limit,
             Direction direction) {
@@ -127,37 +125,7 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
-    public User saveUser(User user) {
-        return UserMapper.toDomain(userRepository.save(UserMapper.toJpaEntity(user)));
-    }
-
-    public void deleteById(Long id) {
-        if (!existsById(id)) {
-            throw new EntityNotFoundException("User with ID " + id + " not found");
-        }
-
-        userRepository.deleteById(id);
-    }
-
-    public void modifyUser(User changes, User existingUser) {
-        UserAccess requestedAccess = UserAccess.of(
-                toMutableSet(changes.getRoles()),
-                toMutableSet(changes.getModules()),
-                toMutableSet(changes.getSubmodules()));
-
-        existingUser.applyChangesFrom(changes, requestedAccess);
-        saveUser(existingUser);
-    }
-
-    public void createUser(User user) {
-        user.prepareForCreation();
-        if (user.hasNoAccessAssigned()) {
-            user.replaceAccess(defaultUserAccessPolicyService.defaultAccessForNewUser());
-        }
-        saveUser(user);
-    }
-
-    public UserDTO mapToUserDTO(UserProjection userProjection) {
+    private UserDTO mapToUserDTO(UserProjection userProjection) {
         if (userProjection == null) {
             return null;
         }
@@ -172,7 +140,7 @@ public class UserService {
         return dto;
     }
 
-    public FullUserDTO mapToFullUserDTO(User user) {
+    private FullUserDTO mapToFullUserDTO(User user) {
         if (user == null) {
             return null;
         }
@@ -203,9 +171,5 @@ public class UserService {
         fullUserDTO.setSubmodules(submodulesDTOs);
 
         return fullUserDTO;
-    }
-
-    private static <T> java.util.Set<T> toMutableSet(java.util.Set<T> values) {
-        return values == null ? null : new java.util.LinkedHashSet<>(values);
     }
 }

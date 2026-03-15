@@ -1,15 +1,16 @@
 package com.dossantosh.springfirstmodulith.users.api.controllers;
 
+import org.springframework.web.bind.annotation.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.application.dtos.FullUserDTO;
 import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
-import com.dossantosh.springfirstmodulith.users.application.services.UserService;
+import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
 
 /**
  * REST controller for managing user-related operations.
@@ -27,7 +28,7 @@ import com.dossantosh.springfirstmodulith.users.application.services.UserService
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     /**
      * Retrieves a list of users using keyset pagination, with optional filtering by
@@ -60,7 +61,7 @@ public class UserController {
             return ResponseEntity.badRequest().build();
         }
 
-        KeysetPage<UserDTO> users = userService.findUsersKeyset(
+        KeysetPage<UserDTO> users = userQueryService.findUsersKeyset(
                 id,
                 username != null ? username.toLowerCase() : null,
                 email != null ? email.toLowerCase() : null,
@@ -78,6 +79,6 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<FullUserDTO> getUserDetails(@PathVariable Long id) {
 
-        return ResponseEntity.ok(userService.getUserDetails(id));
+        return ResponseEntity.ok(userQueryService.getUserDetails(id));
     }
 }
