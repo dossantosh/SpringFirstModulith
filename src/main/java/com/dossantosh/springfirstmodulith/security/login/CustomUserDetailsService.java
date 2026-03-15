@@ -1,10 +1,11 @@
 package com.dossantosh.springfirstmodulith.security.login;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
-import org.springframework.stereotype.Component;
-
 import com.dossantosh.springfirstmodulith.users.api.ports.login.*;
+
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -57,7 +57,7 @@ public class UserController {
         try {
             dir = Direction.valueOf(direction.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build(); // Invalid direction
+            return ResponseEntity.badRequest().build();
         }
 
         KeysetPage<UserDTO> users = userService.findUsersKeyset(
@@ -69,22 +69,12 @@ public class UserController {
                 dir);
 
         if (users == null) {
-            return ResponseEntity.status(500).body(null); // Internal error
+            return ResponseEntity.status(500).body(null); 
         }
 
         return ResponseEntity.ok(users);
     }
 
-    /**
-     * Retrieves the full details of a user including roles, modules, and
-     * submodules.
-     *
-     * @param id The ID of the user to retrieve
-     * @return {@link ResponseEntity} with {@link FullUserDTO} containing full
-     *         user
-     *         information,
-     *         or 200 OK if found, or 404 if the user does not exist
-     */
     @GetMapping("/{id}")
     public ResponseEntity<FullUserDTO> getUserDetails(@PathVariable Long id) {
 

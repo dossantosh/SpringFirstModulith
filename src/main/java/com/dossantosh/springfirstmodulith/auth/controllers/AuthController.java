@@ -1,11 +1,12 @@
 package com.dossantosh.springfirstmodulith.auth.controllers;
 
+import org.springframework.web.bind.annotation.*;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
