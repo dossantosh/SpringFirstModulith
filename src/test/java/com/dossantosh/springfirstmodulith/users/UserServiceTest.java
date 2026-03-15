@@ -1,7 +1,12 @@
 package com.dossantosh.springfirstmodulith.users;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,17 +19,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.dossantosh.springfirstmodulith.core.errors.custom.BusinessException;
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
-import com.dossantosh.springfirstmodulith.users.application.services.ModuleService;
-import com.dossantosh.springfirstmodulith.users.application.services.RoleService;
-import com.dossantosh.springfirstmodulith.users.application.services.SubmoduleService;
+import com.dossantosh.springfirstmodulith.users.application.services.DefaultUserAccessPolicyService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserService;
 import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
+import com.dossantosh.springfirstmodulith.users.infrastructure.entities.ModuleJpaEntity;
+import com.dossantosh.springfirstmodulith.users.infrastructure.entities.RoleJpaEntity;
+import com.dossantosh.springfirstmodulith.users.infrastructure.entities.SubmoduleJpaEntity;
+import com.dossantosh.springfirstmodulith.users.infrastructure.entities.UserJpaEntity;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 
@@ -33,12 +42,9 @@ class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
-    private RoleService roleService;
-    @Mock
-    private ModuleService moduleService;
-    @Mock
-    private SubmoduleService submoduleService;
+    private DefaultUserAccessPolicyService defaultUserAccessPolicyService;
 
     @InjectMocks
     private UserService userService;
@@ -62,7 +68,6 @@ class UserServiceTest {
         when(p2.getIsAdmin()).thenReturn(false);
 
         UserProjection extra = mock(UserProjection.class);
-        // when(extra.getId()).thenReturn(12L);
 
         when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
                 .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
@@ -106,12 +111,9 @@ class UserServiceTest {
 
     @Test
     void findUsersKeyset_previous_hasMore_reversesToAscending_andSetsFlags() {
-        // Arrange
         int limit = 2;
         Long lastId = 20L;
 
-        // Simulate repo returning results for PREVIOUS direction (often descending),
-        // and the service reverses it to ascending.
         UserProjection p1 = mock(UserProjection.class);
         when(p1.getId()).thenReturn(11L);
         when(p1.getUsername()).thenReturn("u2");
@@ -127,40 +129,28 @@ class UserServiceTest {
         when(p2.getIsAdmin()).thenReturn(false);
 
         UserProjection extra = mock(UserProjection.class);
-        // when(extra.getId()).thenReturn(9L);
 
         when(userRepository.findUsersKeyset(null, null, null, lastId, limit + 1, Direction.PREVIOUS.name()))
                 .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
 
-        // Act
         KeysetPage<UserDTO> page = userService.findUsersKeyset(null, null, null, lastId, limit, Direction.PREVIOUS);
 
-        // Assert: reversed to ascending [10, 11]
         assertThat(page.getContent()).extracting(UserDTO::getId).containsExactly(10L, 11L);
-
-        // Cursor semantics after reverse
         assertThat(page.getPreviousId()).isEqualTo(10L);
         assertThat(page.getNextId()).isEqualTo(11L);
-
-        // For PREVIOUS:
-        // hasPrevious = hasMore (true because extra existed)
-        // hasNext = lastId != null (true because we came from "middle")
         assertThat(page.isHasPrevious()).isTrue();
         assertThat(page.isHasNext()).isTrue();
     }
 
     @Test
     void findUsersKeyset_whenNoResults_returnsEmptyPageWithNullCursors() {
-        // Arrange
         int limit = 10;
 
         when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
                 .thenReturn(new ArrayList<>());
 
-        // Act
         KeysetPage<UserDTO> page = userService.findUsersKeyset(null, null, null, null, limit, Direction.NEXT);
 
-        // Assert
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getNextId()).isNull();
         assertThat(page.getPreviousId()).isNull();
@@ -169,136 +159,124 @@ class UserServiceTest {
     }
 
     @Test
-    void modifyUser_whenAssociationsProvided_thenSavesMergedIncomingUser() {
-        // Arrange
-        User existing = new User();
-        existing.setId(5L);
-        existing.setEmail("old@x.com");
-        existing.setEnabled(true);
-        existing.setPassword("hashed");
+    void modifyUser_whenValidChangesProvided_updatesExistingAggregateAndSaves() {
+        Modules usersModule = module(10L, "Users");
+        Roles userRole = role(20L, "USER");
+        Submodules readUsers = submodule(30L, "ReadUsers", usersModule);
 
-        Roles role = new Roles();
-        Modules module = new Modules();
-        Submodules submodule = new Submodules();
+        User existing = new User("john", "old@x.com", "hashed", false);
+        existing.setId(5L);
+        existing.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers)));
 
         User incoming = new User();
-        incoming.setEmail("   ");
-        incoming.setPassword("");
-        incoming.setEnabled(null);
+        incoming.setEmail("new@x.com");
+        incoming.setEnabled(false);
+        incoming.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers)));
 
-        incoming.setRoles(Set.of(role));
-        incoming.setModules(Set.of(module));
-        incoming.setSubmodules(Set.of(submodule));
-
-        // Act
         userService.modifyUser(incoming, existing);
 
-        // Assert: capture what was saved
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<UserJpaEntity> captor = ArgumentCaptor.forClass(UserJpaEntity.class);
         verify(userRepository, times(1)).save(captor.capture());
 
-        User saved = captor.getValue();
-
-        // if your service saves the same instance, this will still pass
-        assertThat(saved).isSameAs(incoming);
-
-        // preserved/copied from existing
+        UserJpaEntity saved = captor.getValue();
         assertThat(saved.getId()).isEqualTo(5L);
-        assertThat(saved.getEmail()).isEqualTo("old@x.com");
+        assertThat(saved.getEmail()).isEqualTo("new@x.com");
         assertThat(saved.getPassword()).isEqualTo("hashed");
-        assertThat(saved.getEnabled()).isTrue();
-
-        // associations kept
-        assertThat(saved.getRoles()).containsExactly(role);
-        assertThat(saved.getModules()).containsExactly(module);
-        assertThat(saved.getSubmodules()).containsExactly(submodule);
-
-        verifyNoMoreInteractions(userRepository);
+        assertThat(saved.getEnabled()).isFalse();
+        assertThat(saved.getRoles()).extracting(RoleJpaEntity::getId, RoleJpaEntity::getName)
+                .containsExactly(tuple(20L, "USER"));
+        assertThat(saved.getModules()).extracting(ModuleJpaEntity::getId, ModuleJpaEntity::getName)
+                .containsExactly(tuple(10L, "Users"));
+        assertThat(saved.getSubmodules()).extracting(SubmoduleJpaEntity::getId, SubmoduleJpaEntity::getName)
+                .containsExactly(tuple(30L, "ReadUsers"));
     }
 
     @Test
-    void modifyUser_whenAssociationsMissing_thenReturnsEarly_andDoesNotSave() {
-        User existing = new User();
+    void modifyUser_whenAccessIsMissing_throwsBusinessException_andDoesNotSave() {
+        User existing = new User("john", "old@x.com", "hashed", false);
         existing.setId(5L);
-        existing.setEmail("old@x.com");
-        existing.setEnabled(true);
-        existing.setPassword("hashed");
 
         User incoming = new User();
-        incoming.setEmail("");
-        incoming.setPassword("");
-        incoming.setEnabled(null);
+        incoming.setEmail("new@x.com");
 
-        incoming.setRoles(null);
-        incoming.setModules(null);
-        incoming.setSubmodules(null);
-
-        userService.modifyUser(incoming, existing);
+        assertThatThrownBy(() -> userService.modifyUser(incoming, existing))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("at least one role");
 
         verifyNoInteractions(userRepository);
-
-        assertThat(incoming.getId()).isNull();
-        assertThat(incoming.getEmail()).isEmpty();
-        assertThat(incoming.getEnabled()).isNull();
-        assertThat(incoming.getPassword()).isEmpty();
     }
 
     @Test
-    void createUser_setsDefaults_andSaves_whenDefaultRoleModuleSubmoduleExist() {
-        // given default IDs in your code: 1L, 1L, 1L
-        Roles role = new Roles();
-        role.setId(1L);
-        role.setName("ROLE_USER");
+    void createUser_assignsDefaultAccessFromPolicy_andSaves() {
+        Modules usersModule = module(1L, "Users");
+        Roles userRole = role(2L, "USER");
+        Submodules readUsers = submodule(3L, "ReadUsers", usersModule);
 
-        Modules module = new Modules();
-        module.setId(1L);
-        module.setName("DEFAULT_MODULE");
+        when(defaultUserAccessPolicyService.defaultAccessForNewUser())
+                .thenReturn(UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers)));
 
-        Submodules submodule = new Submodules();
-        submodule.setId(1L);
-        submodule.setName("DEFAULT_SUBMODULE");
+        User newUser = new User("john", "john@x.com", "secret", false);
 
-        when(roleService.existById(1L)).thenReturn(true);
-        when(roleService.findById(1L)).thenReturn(role);
-
-        when(moduleService.existById(1L)).thenReturn(true);
-        when(moduleService.findById(1L)).thenReturn(module);
-
-        when(submoduleService.existById(1L)).thenReturn(true);
-        when(submoduleService.findById(1L)).thenReturn(submodule);
-
-        User newUser = new User();
-        newUser.setUsername("john");
-        newUser.setEmail("john@x.com");
-
-        // when
         userService.createUser(newUser);
 
-        // then
-        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<UserJpaEntity> captor = ArgumentCaptor.forClass(UserJpaEntity.class);
         verify(userRepository).save(captor.capture());
 
-        User saved = captor.getValue();
+        UserJpaEntity saved = captor.getValue();
         assertThat(saved.getEnabled()).isTrue();
-        assertThat(saved.getRoles()).extracting("id").contains(1L);
-        assertThat(saved.getModules()).extracting("id").contains(1L);
-        assertThat(saved.getSubmodules()).extracting("id").contains(1L);
+        assertThat(saved.getRoles()).extracting(RoleJpaEntity::getId, RoleJpaEntity::getName)
+                .containsExactly(tuple(2L, "USER"));
+        assertThat(saved.getModules()).extracting(ModuleJpaEntity::getId, ModuleJpaEntity::getName)
+                .containsExactly(tuple(1L, "Users"));
+        assertThat(saved.getSubmodules()).extracting(SubmoduleJpaEntity::getId, SubmoduleJpaEntity::getName)
+                .containsExactly(tuple(3L, "ReadUsers"));
     }
 
     @Test
-    void createUser_doesNotSave_whenAnyDefaultIsMissing() {
-        when(roleService.existById(1L)).thenReturn(true);
-        when(roleService.findById(1L)).thenReturn(new Roles());
+    void createUser_whenExplicitAccessIsProvided_preservesItAndSkipsDefaultPolicy() {
+        Modules adminModule = module(10L, "Admin");
+        Roles adminRole = role(20L, "ADMIN");
+        Submodules manageUsers = submodule(30L, "ManageUsers", adminModule);
 
-        when(moduleService.existById(1L)).thenReturn(true);
-        when(moduleService.findById(1L)).thenReturn(new Modules());
+        User newUser = new User("john", "john@x.com", "secret", true);
+        newUser.replaceAccess(UserAccess.of(Set.of(adminRole), Set.of(adminModule), Set.of(manageUsers)));
 
-        when(submoduleService.existById(1L)).thenReturn(false); // missing
-
-        User newUser = new User();
         userService.createUser(newUser);
 
-        verifyNoInteractions(userRepository);
+        ArgumentCaptor<UserJpaEntity> captor = ArgumentCaptor.forClass(UserJpaEntity.class);
+        verify(userRepository).save(captor.capture());
+        verifyNoInteractions(defaultUserAccessPolicyService);
+
+        UserJpaEntity saved = captor.getValue();
+        assertThat(saved.getEnabled()).isTrue();
+        assertThat(saved.getIsAdmin()).isTrue();
+        assertThat(saved.getRoles()).extracting(RoleJpaEntity::getId, RoleJpaEntity::getName)
+                .containsExactly(tuple(20L, "ADMIN"));
+        assertThat(saved.getModules()).extracting(ModuleJpaEntity::getId, ModuleJpaEntity::getName)
+                .containsExactly(tuple(10L, "Admin"));
+        assertThat(saved.getSubmodules()).extracting(SubmoduleJpaEntity::getId, SubmoduleJpaEntity::getName)
+                .containsExactly(tuple(30L, "ManageUsers"));
     }
 
+    private static Roles role(Long id, String name) {
+        Roles role = new Roles(name);
+        role.setId(id);
+        return role;
+    }
+
+    private static org.assertj.core.groups.Tuple tuple(Object... values) {
+        return org.assertj.core.groups.Tuple.tuple(values);
+    }
+
+    private static Modules module(Long id, String name) {
+        Modules module = new Modules(name);
+        module.setId(id);
+        return module;
+    }
+
+    private static Submodules submodule(Long id, String name, Modules module) {
+        Submodules submodule = new Submodules(name, module);
+        submodule.setId(id);
+        return submodule;
+    }
 }
