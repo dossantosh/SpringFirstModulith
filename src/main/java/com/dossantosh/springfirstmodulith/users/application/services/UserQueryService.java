@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
-import com.dossantosh.springfirstmodulith.users.application.dtos.FullUserDTO;
-import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
-import com.dossantosh.springfirstmodulith.users.application.dtos.roles.ModulesDTO;
-import com.dossantosh.springfirstmodulith.users.application.dtos.roles.RolesDTO;
-import com.dossantosh.springfirstmodulith.users.application.dtos.roles.SubmodulesDTO;
+import com.dossantosh.springfirstmodulith.users.application.views.ModuleView;
+import com.dossantosh.springfirstmodulith.users.application.views.RoleView;
+import com.dossantosh.springfirstmodulith.users.application.views.SubmoduleView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
 import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.Submodules;
@@ -32,22 +32,22 @@ public class UserQueryService {
 
     private final UserRepository userRepository;
 
-    public KeysetPage<UserDTO> findUsersKeyset(Long id, String username, String email, Long lastId, int limit,
+    public KeysetPage<UserSummaryView> findUsersKeyset(Long id, String username, String email, Long lastId, int limit,
             Direction direction) {
-        List<UserProjection> usersProjections = userRepository.findUsersKeyset(id, username, email, lastId, limit + 1,
+        List<UserProjection> userProjections = userRepository.findUsersKeyset(id, username, email, lastId, limit + 1,
                 direction.name());
 
-        boolean hasMore = usersProjections.size() > limit;
+        boolean hasMore = userProjections.size() > limit;
         if (hasMore) {
-            usersProjections.remove(usersProjections.size() - 1);
+            userProjections.remove(userProjections.size() - 1);
         }
 
         if (direction == Direction.PREVIOUS) {
-            Collections.reverse(usersProjections);
+            Collections.reverse(userProjections);
         }
 
-        List<UserDTO> users = usersProjections.stream()
-                .map(this::mapToUserDTO)
+        List<UserSummaryView> userSummaries = userProjections.stream()
+                .map(this::toUserSummaryView)
                 .toList();
 
         Long newNextId = null;
@@ -55,9 +55,9 @@ public class UserQueryService {
         boolean hasNext = false;
         boolean hasPrevious = false;
 
-        if (!users.isEmpty()) {
-            newNextId = users.get(users.size() - 1).getId();
-            newPreviousId = users.get(0).getId();
+        if (!userSummaries.isEmpty()) {
+            newNextId = userSummaries.get(userSummaries.size() - 1).id();
+            newPreviousId = userSummaries.get(0).id();
             if (direction == Direction.NEXT) {
                 hasNext = hasMore;
                 hasPrevious = lastId != null;
@@ -67,8 +67,8 @@ public class UserQueryService {
             }
         }
 
-        KeysetPage<UserDTO> page = new KeysetPage<>();
-        page.setContent(users);
+        KeysetPage<UserSummaryView> page = new KeysetPage<>();
+        page.setContent(userSummaries);
         page.setNextId(newNextId);
         page.setPreviousId(newPreviousId);
         page.setHasNext(hasNext);
@@ -77,10 +77,10 @@ public class UserQueryService {
         return page;
     }
 
-    public FullUserDTO getUserDetails(Long id) {
+    public UserDetailsView getUserDetails(Long id) {
         return userRepository.findFullUserById(id)
                 .map(UserMapper::toDomain)
-                .map(this::mapToFullUserDTO)
+                .map(this::toUserDetailsView)
                 .orElse(null);
     }
 
@@ -125,51 +125,47 @@ public class UserQueryService {
         return userRepository.existsByEmail(email);
     }
 
-    private UserDTO mapToUserDTO(UserProjection userProjection) {
+    private UserSummaryView toUserSummaryView(UserProjection userProjection) {
         if (userProjection == null) {
             return null;
         }
 
-        UserDTO dto = new UserDTO();
-        dto.setId(userProjection.getId());
-        dto.setUsername(userProjection.getUsername());
-        dto.setEmail(userProjection.getEmail());
-        dto.setEnabled(userProjection.getEnabled());
-        dto.setIsAdmin(userProjection.getIsAdmin());
-
-        return dto;
+        return new UserSummaryView(
+                userProjection.getId(),
+                userProjection.getUsername(),
+                userProjection.getEmail(),
+                userProjection.getEnabled(),
+                userProjection.getIsAdmin());
     }
 
-    private FullUserDTO mapToFullUserDTO(User user) {
+    private UserDetailsView toUserDetailsView(User user) {
         if (user == null) {
             return null;
         }
 
-        FullUserDTO fullUserDTO = new FullUserDTO();
-        fullUserDTO.setId(user.getId());
-        fullUserDTO.setUsername(user.getUsername());
-        fullUserDTO.setEmail(user.getEmail());
-        fullUserDTO.setEnabled(user.getEnabled());
-        fullUserDTO.setIsAdmin(user.getIsAdmin());
-
-        LinkedHashSet<RolesDTO> rolesDTOs = new LinkedHashSet<>();
+        LinkedHashSet<RoleView> roleViews = new LinkedHashSet<>();
         for (Roles role : user.getRoles()) {
-            rolesDTOs.add(new RolesDTO(role.getId(), role.getName()));
+            roleViews.add(new RoleView(role.getId(), role.getName()));
         }
-        fullUserDTO.setRoles(rolesDTOs);
 
-        LinkedHashSet<ModulesDTO> modulesDTOs = new LinkedHashSet<>();
+        LinkedHashSet<ModuleView> moduleViews = new LinkedHashSet<>();
         for (Modules module : user.getModules()) {
-            modulesDTOs.add(new ModulesDTO(module.getId(), module.getName()));
+            moduleViews.add(new ModuleView(module.getId(), module.getName()));
         }
-        fullUserDTO.setModules(modulesDTOs);
 
-        LinkedHashSet<SubmodulesDTO> submodulesDTOs = new LinkedHashSet<>();
+        LinkedHashSet<SubmoduleView> submoduleViews = new LinkedHashSet<>();
         for (Submodules submodule : user.getSubmodules()) {
-            submodulesDTOs.add(new SubmodulesDTO(submodule.getId(), submodule.getName()));
+            submoduleViews.add(new SubmoduleView(submodule.getId(), submodule.getName()));
         }
-        fullUserDTO.setSubmodules(submodulesDTOs);
 
-        return fullUserDTO;
+        return new UserDetailsView(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getEnabled(),
+                user.getIsAdmin(),
+                roleViews,
+                moduleViews,
+                submoduleViews);
     }
 }

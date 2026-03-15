@@ -23,6 +23,7 @@ import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.UserChanges;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import com.dossantosh.springfirstmodulith.users.infrastructure.entities.ModuleJpaEntity;
 import com.dossantosh.springfirstmodulith.users.infrastructure.entities.RoleJpaEntity;
@@ -47,15 +48,10 @@ class UserCommandServiceTest {
         Modules usersModule = module(10L, "Users");
         Roles userRole = role(20L, "USER");
         Submodules readUsers = submodule(30L, "ReadUsers", usersModule);
+        UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers));
 
-        User existing = new User("john", "old@x.com", "hashed", false);
-        existing.setId(5L);
-        existing.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers)));
-
-        User incoming = new User();
-        incoming.setEmail("new@x.com");
-        incoming.setEnabled(false);
-        incoming.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers)));
+        User existing = User.rehydrate(5L, "john", "old@x.com", true, "hashed", false, access);
+        UserChanges incoming = new UserChanges(null, "new@x.com", false, null, null, access);
 
         userCommandService.modifyUser(incoming, existing);
 
@@ -77,15 +73,14 @@ class UserCommandServiceTest {
 
     @Test
     void modifyUser_whenAccessIsMissing_throwsBusinessException_andDoesNotSave() {
-        User existing = new User("john", "old@x.com", "hashed", false);
-        existing.setId(5L);
+        User existing = User.rehydrate(5L, "john", "old@x.com", true, "hashed", false,
+                UserAccess.of(Set.of(role(20L, "USER")), Set.of(module(10L, "Users")),
+                        Set.of(submodule(30L, "ReadUsers", module(10L, "Users")))));
 
-        User incoming = new User();
-        incoming.setEmail("new@x.com");
-
-        assertThatThrownBy(() -> userCommandService.modifyUser(incoming, existing))
+        assertThatThrownBy(() -> userCommandService.modifyUser(
+                new UserChanges(null, "new@x.com", null, null, null, null), existing))
                 .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("at least one role");
+                .hasMessageContaining("User access cannot be null");
 
         verifyNoInteractions(userRepository);
     }

@@ -40,28 +40,21 @@ public class User {
         activate();
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public static User rehydrate(Long id, String username, String email, Boolean enabled, String password,
+            Boolean isAdmin, UserAccess access) {
+        User user = new User();
+        user.id = id;
+        user.renameTo(username);
+        user.changeEmail(email);
+        user.changePassword(password);
+        user.enabled = requireBoolean(enabled, "enabled");
+        user.isAdmin = requireBoolean(isAdmin, "isAdmin");
 
-    public void setUsername(String username) {
-        this.username = normalizeNullable(username);
-    }
+        if (access != null) {
+            user.replaceAccess(access);
+        }
 
-    public void setEmail(String email) {
-        this.email = normalizeEmailNullable(email);
-    }
-
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public void setPassword(String password) {
-        this.password = normalizeNullable(password);
-    }
-
-    public void setIsAdmin(Boolean isAdmin) {
-        this.isAdmin = isAdmin;
+        return user;
     }
 
     public Set<Roles> getRoles() {
@@ -127,36 +120,36 @@ public class User {
         this.submodules.addAll(access.submodules());
     }
 
-    public void applyChangesFrom(User changes, UserAccess requestedAccess) {
+    public void applyChangesFrom(UserChanges changes) {
         if (changes == null) {
             throw new BusinessException("Changes cannot be null");
         }
 
-        if (hasText(changes.username)) {
-            renameTo(changes.username);
+        if (hasText(changes.username())) {
+            renameTo(changes.username());
         }
 
-        if (hasText(changes.email)) {
-            changeEmail(changes.email);
+        if (hasText(changes.email())) {
+            changeEmail(changes.email());
         }
 
-        if (changes.enabled != null) {
-            if (Boolean.TRUE.equals(changes.enabled)) {
+        if (changes.enabled() != null) {
+            if (Boolean.TRUE.equals(changes.enabled())) {
                 activate();
             } else {
                 disable();
             }
         }
 
-        if (hasText(changes.password)) {
-            changePassword(changes.password);
+        if (hasText(changes.password())) {
+            changePassword(changes.password());
         }
 
-        if (changes.isAdmin != null) {
-            setAdmin(changes.isAdmin);
+        if (changes.isAdmin() != null) {
+            setAdmin(changes.isAdmin());
         }
 
-        replaceAccess(requestedAccess);
+        replaceAccess(changes.access());
     }
 
     public boolean hasNoAccessAssigned() {
@@ -194,6 +187,13 @@ public class User {
 
     private static boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private static boolean requireBoolean(Boolean value, String fieldName) {
+        if (value == null) {
+            throw new BusinessException(fieldName + " cannot be null");
+        }
+        return value;
     }
 
     private void validateAccessStateForCreation() {

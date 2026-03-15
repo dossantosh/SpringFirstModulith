@@ -15,8 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
-import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
+import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 
@@ -52,9 +52,10 @@ class UserQueryServiceTest {
         when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
                 .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
 
-        KeysetPage<UserDTO> page = userQueryService.findUsersKeyset(null, null, null, null, limit, Direction.NEXT);
+        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
+                Direction.NEXT);
 
-        assertThat(page.getContent()).extracting(UserDTO::getId).containsExactly(10L, 11L);
+        assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
         assertThat(page.getNextId()).isEqualTo(11L);
         assertThat(page.getPreviousId()).isEqualTo(10L);
         assertThat(page.isHasNext()).isTrue();
@@ -82,9 +83,10 @@ class UserQueryServiceTest {
         when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
                 .thenReturn(new ArrayList<>(List.of(p1, p2)));
 
-        KeysetPage<UserDTO> page = userQueryService.findUsersKeyset(null, null, null, null, limit, Direction.NEXT);
+        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
+                Direction.NEXT);
 
-        assertThat(page.getContent()).extracting(UserDTO::getId).containsExactly(10L, 11L);
+        assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
         assertThat(page.isHasNext()).isFalse();
         assertThat(page.isHasPrevious()).isFalse();
     }
@@ -113,9 +115,10 @@ class UserQueryServiceTest {
         when(userRepository.findUsersKeyset(null, null, null, lastId, limit + 1, Direction.PREVIOUS.name()))
                 .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
 
-        KeysetPage<UserDTO> page = userQueryService.findUsersKeyset(null, null, null, lastId, limit, Direction.PREVIOUS);
+        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, lastId, limit,
+                Direction.PREVIOUS);
 
-        assertThat(page.getContent()).extracting(UserDTO::getId).containsExactly(10L, 11L);
+        assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
         assertThat(page.getPreviousId()).isEqualTo(10L);
         assertThat(page.getNextId()).isEqualTo(11L);
         assertThat(page.isHasPrevious()).isTrue();
@@ -129,7 +132,8 @@ class UserQueryServiceTest {
         when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
                 .thenReturn(new ArrayList<>());
 
-        KeysetPage<UserDTO> page = userQueryService.findUsersKeyset(null, null, null, null, limit, Direction.NEXT);
+        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
+                Direction.NEXT);
 
         assertThat(page.getContent()).isEmpty();
         assertThat(page.getNextId()).isNull();

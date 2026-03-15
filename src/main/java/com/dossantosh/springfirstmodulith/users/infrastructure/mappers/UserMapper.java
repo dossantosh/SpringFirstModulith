@@ -14,23 +14,16 @@ public final class UserMapper {
             return null;
         }
 
-        User user = new User();
-        user.setId(entity.getId());
-        user.setUsername(entity.getUsername());
-        user.setEmail(entity.getEmail());
-        user.setEnabled(entity.getEnabled());
-        user.setPassword(entity.getPassword());
-        user.setIsAdmin(entity.getIsAdmin());
+        UserAccess access = toUserAccessOrNull(entity);
 
-        if (entity.getRoles() != null && entity.getModules() != null && entity.getSubmodules() != null
-                && !entity.getRoles().isEmpty() && !entity.getModules().isEmpty() && !entity.getSubmodules().isEmpty()) {
-            user.replaceAccess(UserAccess.of(
-                    AccessReferenceMapper.toDomainRoles(entity.getRoles()),
-                    AccessReferenceMapper.toDomainModules(entity.getModules()),
-                    AccessReferenceMapper.toDomainSubmodules(entity.getSubmodules())));
-        }
-
-        return user;
+        return User.rehydrate(
+                entity.getId(),
+                entity.getUsername(),
+                entity.getEmail(),
+                entity.getEnabled(),
+                entity.getPassword(),
+                entity.getIsAdmin(),
+                access);
     }
 
     public static UserJpaEntity toJpaEntity(User user) {
@@ -50,5 +43,29 @@ public final class UserMapper {
         entity.setSubmodules(AccessReferenceMapper.toJpaSubmoduleEntities(user.getSubmodules()));
 
         return entity;
+    }
+
+    private static UserAccess toUserAccessOrNull(UserJpaEntity entity) {
+        boolean hasAnyAccess = entity.getRoles() != null && !entity.getRoles().isEmpty()
+                || entity.getModules() != null && !entity.getModules().isEmpty()
+                || entity.getSubmodules() != null && !entity.getSubmodules().isEmpty();
+
+        if (!hasAnyAccess) {
+            return null;
+        }
+
+        boolean hasCompleteAccess = entity.getRoles() != null && !entity.getRoles().isEmpty()
+                && entity.getModules() != null && !entity.getModules().isEmpty()
+                && entity.getSubmodules() != null && !entity.getSubmodules().isEmpty();
+
+        if (!hasCompleteAccess) {
+            throw new com.dossantosh.springfirstmodulith.core.errors.custom.BusinessException(
+                    "Persisted user access is incomplete");
+        }
+
+        return UserAccess.of(
+                AccessReferenceMapper.toDomainRoles(entity.getRoles()),
+                AccessReferenceMapper.toDomainModules(entity.getModules()),
+                AccessReferenceMapper.toDomainSubmodules(entity.getSubmodules()));
     }
 }

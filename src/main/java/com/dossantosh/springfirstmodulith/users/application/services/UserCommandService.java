@@ -3,7 +3,7 @@ package com.dossantosh.springfirstmodulith.users.application.services;
 import org.springframework.stereotype.Service;
 
 import com.dossantosh.springfirstmodulith.users.domain.User;
-import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
+import com.dossantosh.springfirstmodulith.users.domain.UserChanges;
 import com.dossantosh.springfirstmodulith.users.infrastructure.mappers.UserMapper;
 import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 
@@ -25,13 +25,8 @@ public class UserCommandService {
         userRepository.deleteById(id);
     }
 
-    public void modifyUser(User changes, User existingUser) {
-        UserAccess requestedAccess = UserAccess.of(
-                toMutableSet(changes.getRoles()),
-                toMutableSet(changes.getModules()),
-                toMutableSet(changes.getSubmodules()));
-
-        existingUser.applyChangesFrom(changes, requestedAccess);
+    public void modifyUser(UserChanges changes, User existingUser) {
+        existingUser.applyChangesFrom(changes);
         save(existingUser);
     }
 
@@ -45,9 +40,5 @@ public class UserCommandService {
 
     private User save(User user) {
         return UserMapper.toDomain(userRepository.save(UserMapper.toJpaEntity(user)));
-    }
-
-    private static <T> java.util.Set<T> toMutableSet(java.util.Set<T> values) {
-        return values == null ? null : new java.util.LinkedHashSet<>(values);
     }
 }

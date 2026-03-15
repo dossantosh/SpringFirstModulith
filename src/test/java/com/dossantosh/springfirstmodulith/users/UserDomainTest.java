@@ -12,6 +12,7 @@ import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.UserChanges;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 
 class UserDomainTest {
@@ -38,16 +39,14 @@ class UserDomainTest {
         Modules users = module(1L, "Users");
         Roles userRole = role(2L, "USER");
         Submodules readUsers = submodule(3L, "ReadUsers", users);
+        UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(readUsers));
 
         User existing = new User("john", "john@x.com", "secret", false);
-        existing.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(users), Set.of(readUsers)));
+        existing.replaceAccess(access);
 
-        User changes = new User();
-        changes.setEmail("john+updated@x.com");
-        changes.setEnabled(false);
-        changes.setIsAdmin(true);
+        UserChanges changes = new UserChanges(null, "john+updated@x.com", false, null, true, access);
 
-        existing.applyChangesFrom(changes, UserAccess.of(Set.of(userRole), Set.of(users), Set.of(readUsers)));
+        existing.applyChangesFrom(changes);
 
         assertThat(existing.getEmail()).isEqualTo("john+updated@x.com");
         assertThat(existing.getEnabled()).isFalse();
