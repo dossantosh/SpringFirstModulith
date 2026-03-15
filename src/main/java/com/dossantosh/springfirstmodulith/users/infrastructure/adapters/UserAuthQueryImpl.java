@@ -11,10 +11,6 @@ import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthView;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 
-/**
- * Default implementation of {@link UserAuthQuery} backed by
- * {@link UserRepository}.
- */
 @Component
 class UserAuthQueryImpl implements UserAuthQuery {
 

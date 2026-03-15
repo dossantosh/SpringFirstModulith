@@ -1,34 +1,29 @@
 package com.dossantosh.springfirstmodulith.users.domain;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
-@Entity
-@Table(name = "modules")
-public class Modules implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Compatible con SERIAL de PostgreSQL
-    @Column(name = "id_module")
+@NoArgsConstructor
+public class Modules {
+
     private Long id;
 
-    @Column(unique = true, length = 50, nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "modules")
-    private List<User> users = new ArrayList<>();
+    public Modules(String name) {
+        this.name = name;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     @Override
     public boolean equals(Object o) {

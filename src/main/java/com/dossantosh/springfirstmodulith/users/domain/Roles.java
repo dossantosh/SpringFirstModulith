@@ -1,29 +1,29 @@
 package com.dossantosh.springfirstmodulith.users.domain;
 
-import java.io.Serializable;
 import java.util.Objects;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
-@Entity
-@Table(name = "roles")
-public class Roles implements Serializable {
+@NoArgsConstructor
+public class Roles {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_role")
     private Long id;
 
-    @Column(unique = true, length = 20)
     private String name;
+
+    public Roles(String name) {
+        this.name = name;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     @Override
     public boolean equals(Object o) {
