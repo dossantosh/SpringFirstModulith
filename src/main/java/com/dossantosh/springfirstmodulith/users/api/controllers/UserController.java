@@ -1,15 +1,16 @@
 package com.dossantosh.springfirstmodulith.users.api.controllers;
 
+import org.springframework.web.bind.annotation.*;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
-import com.dossantosh.springfirstmodulith.users.application.dtos.FullUserDTO;
-import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
-import com.dossantosh.springfirstmodulith.users.application.services.UserService;
+import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
+import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
 
 /**
  * REST controller for managing user-related operations.
@@ -27,7 +28,7 @@ import com.dossantosh.springfirstmodulith.users.application.services.UserService
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     /**
      * Retrieves a list of users using keyset pagination, with optional filtering by
@@ -40,12 +41,12 @@ public class UserController {
      * @param limit     Maximum number of results to return (default: 50)
      * @param direction Pagination direction: "NEXT" or "PREVIOUS" (default: NEXT)
      * @return {@link ResponseEntity} containing a {@link KeysetPage} of
-     *         {@link FullUserDTO},
+     *         {@link UserSummaryView},
      *         or 400 Bad Request if direction is invalid, or 500 Internal Server
      *         Error if service fails
      */
     @GetMapping
-    public ResponseEntity<KeysetPage<UserDTO>> getUsers(
+    public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(
             @RequestParam(required = false) Long id,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String email,
@@ -57,10 +58,10 @@ public class UserController {
         try {
             dir = Direction.valueOf(direction.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build(); // Invalid direction
+            return ResponseEntity.badRequest().build();
         }
 
-        KeysetPage<UserDTO> users = userService.findUsersKeyset(
+        KeysetPage<UserSummaryView> users = userQueryService.findUsersKeyset(
                 id,
                 username != null ? username.toLowerCase() : null,
                 email != null ? email.toLowerCase() : null,
@@ -69,25 +70,15 @@ public class UserController {
                 dir);
 
         if (users == null) {
-            return ResponseEntity.status(500).body(null); // Internal error
+            return ResponseEntity.status(500).body(null); 
         }
 
         return ResponseEntity.ok(users);
     }
 
-    /**
-     * Retrieves the full details of a user including roles, modules, and
-     * submodules.
-     *
-     * @param id The ID of the user to retrieve
-     * @return {@link ResponseEntity} with {@link FullUserDTO} containing full
-     *         user
-     *         information,
-     *         or 200 OK if found, or 404 if the user does not exist
-     */
     @GetMapping("/{id}")
-    public ResponseEntity<FullUserDTO> getUserDetails(@PathVariable Long id) {
+    public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
 
-        return ResponseEntity.ok(userService.getUserDetails(id));
+        return ResponseEntity.ok(userQueryService.getUserDetails(id));
     }
 }

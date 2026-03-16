@@ -5,41 +5,42 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.dossantosh.springfirstmodulith.users.application.dtos.UserDTO;
-import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.infrastructure.entities.UserJpaEntity;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
 
-/**
- * Repository interface for managing {@link User} entities.
- * 
- * Provides methods for retrieving users by username, email, and ID,
- * checking existence, and retrieving detailed authentication and user data
- * with custom queries and keyset pagination.
- */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<UserJpaEntity, Long> {
 
     /**
      * Finds a user by their exact username.
      *
      * @param username the username to search for
-     * @return an Optional containing the found User, or empty if not found
+     * @return an Optional containing the found user, or empty if not found
      */
-    Optional<User> findByUsername(String username);
+    @EntityGraph(attributePaths = { "roles", "modules", "submodules" })
+    Optional<UserJpaEntity> findByUsername(String username);
 
     /**
      * Finds a user by their exact email address.
      *
      * @param email the email to search for
-     * @return an Optional containing the found User, or empty if not found
+     * @return an Optional containing the found user, or empty if not found
      */
-    Optional<User> findByEmail(String email);
+    @EntityGraph(attributePaths = { "roles", "modules", "submodules" })
+    Optional<UserJpaEntity> findByEmail(String email);
+
+    @Override
+    @EntityGraph(attributePaths = { "roles", "modules", "submodules" })
+    List<UserJpaEntity> findAll();
+
+    @Override
+    @EntityGraph(attributePaths = { "roles", "modules", "submodules" })
+    Optional<UserJpaEntity> findById(Long id);
 
     /**
      * Checks if a user exists by the given ID.
@@ -122,7 +123,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @param lastId    the last seen user ID for pagination cursor
      * @param limit     max number of users to return
      * @param direction pagination direction ("NEXT" or "PREVIOUS")
-     * @return a list of {@link UserDTO} matching the filters and pagination
+     * @return a list of {@link UserProjection} matching the filters and pagination
      */
     @Query(value = """
                 SELECT u.id_user AS id,
@@ -157,10 +158,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * using an {@link EntityGraph} to optimize fetching.
      *
      * @param id the ID of the user
-     * @return an Optional containing the full {@link User} entity with
+     * @return an Optional containing the full {@link UserJpaEntity} entity with
      *         associations,
      *         or empty if not found
      */
     @EntityGraph(attributePaths = { "roles", "modules", "submodules" })
-    Optional<User> findFullUserById(Long id);
+    Optional<UserJpaEntity> findFullUserById(Long id);
 }

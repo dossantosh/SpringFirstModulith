@@ -1,34 +1,40 @@
 package com.dossantosh.springfirstmodulith.users.domain;
 
-import java.io.Serializable;
 import java.util.Objects;
 
-import jakarta.persistence.*;
-
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
-@Entity
-@Table(
-    name = "submodules",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"name", "id_module"})
-    }
-)
-public class Submodules implements Serializable {
+@NoArgsConstructor
+public class Submodules {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_submodule")
     private Long id;
 
-    @Column(length = 50)
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "id_module")
     private Modules module;
+
+    public Submodules(String name, Modules module) {
+        this.name = name;
+        this.module = module;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setModule(Modules module) {
+        this.module = module;
+    }
+
+    public boolean belongsTo(Modules module) {
+        return this.module != null && this.module.equals(module);
+    }
 
     @Override
     public boolean equals(Object o) {

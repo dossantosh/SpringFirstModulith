@@ -20,7 +20,7 @@ ON CONFLICT (name, id_module) DO NOTHING;
 
 -- Users
 INSERT INTO users (id_user, email, enabled, is_admin, password, username) VALUES
-(1, 'sebastiandossantosh@gmail.com', true, true,  '$2b$10$w.f36eR/BwE8fVuSki1bJuQfbHcwcdqUJcqWKMlntMg2c1rt2rRpO', ''),
+(1, 'sebastiandossantosh@gmail.com', true, true,  '$2b$10$w.f36eR/BwE8fVuSki1bJuQfbHcwcdqUJcqWKMlntMg2c1rt2rRpO', 'dossantosh'),
 (2, 'sebastiandossantosherrera@gmail.com', true, false, '$2b$10$w.f36eR/BwE8fVuSki1bJuQfbHcwcdqUJcqWKMlntMg2c1rt2rRpO', 'sevas')
 ON CONFLICT (id_user) DO NOTHING;
 
