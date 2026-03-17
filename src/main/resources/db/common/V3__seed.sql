@@ -35,9 +35,9 @@ ON CONFLICT (name, id_module) DO NOTHING;
 INSERT INTO users (id_user, email, enabled, is_admin, password, username)
 VALUES
     (1, 'sebastiandossantosh@gmail.com', true, true,
-     '$2b$10$w.f36eR/BwE8fVuSki1bJuQfbHcwcdqUJcqWKMlntMg2c1rt2rRpO', 'dossantosh'),
+     '$2a$10$DPjKRoWF6.xyfZxEGr7x5O1nXjPf/7LGdSZCq/HkCLNdmdojIAjVG', 'dossantosh'),
     (2, 'sebastiandossantosherrera@gmail.com', true, false,
-     '$2b$10$w.f36eR/BwE8fVuSki1bJuQfbHcwcdqUJcqWKMlntMg2c1rt2rRpO', 'sevas')
+     '$2a$10$DPjKRoWF6.xyfZxEGr7x5O1nXjPf/7LGdSZCq/HkCLNdmdojIAjVG', 'sevas')
 ON CONFLICT (id_user) DO NOTHING;
 
 

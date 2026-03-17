@@ -33,10 +33,10 @@ public class UserJpaEntity implements Serializable {
     @Column(name = "id_user")
     private Long id;
 
-    @Column(unique = true, length = 50)
+    @Column(unique = true, length = 60)
     private String username;
 
-    @Column(unique = true, length = 50)
+    @Column(unique = true, length = 100)
     private String email;
 
     @Column
