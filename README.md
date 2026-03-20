@@ -16,6 +16,8 @@
 - [🚀 Getting Started (Docker-first)](#-getting-started-docker-first)
 - [🐳 Docker Compose (DB + App)](#-docker-compose-db--app)
 - [🔒 Security Notes](#-security-notes)
+
+- [Code Formatting (Spotless)](#code-formatting-spotless)
 - [🧪 Testing with Docker](#-testing-with-docker)
 - [👤 Author](#-author)
 - [📬 Contact](#-contact)
@@ -117,61 +119,7 @@ This ensures the architecture stays clean as the system grows.
 
 ---
 
-## 🗂️ Project Structure
-
-```
-com.dossantosh.springfirstmodulith
-├── auth
-│   ├── controllers
-│   └── package-info.java
-│
-├── core
-│   ├── datasource
-│   ├── errors
-│   ├── page
-│   └── package-info.java
-│
-├── perfumes
-│   └── package-info.java
-│
-├── security
-│   ├── login
-│   ├── package-info.java
-│   ├── SecurityConfig.java
-│   └── SessionCookieConfig.java
-│
-├── users
-│   ├── api
-│   │   └── controllers
-│   │
-│   ├── ports
-│   │
-│   ├── application
-│   │   ├── dtos
-│   │   └── services
-│   │
-│   ├── domain
-│   │   └── Jpa Models
-│   │
-│   ├── infrastructure
-│   │   ├── adapters
-│   │   ├── projections
-│   │   └── repos
-│   │
-│   └── package-info.java
-│
-└── SpringfirstmodulithApplication.java
-```
-
 ### 🗂️ Database Resources
-
-```
-src/main/resources/db
-├── common
-│   ├── V1__schema_common.sql.sql
-│   ├── V2__schema_security.sql
-│   └── V3__seed.sql
-```
 
 - **Flyway is the single source of truth** for schema & seed data
 - No Hibernate schema generation is relied upon for production runs
@@ -199,7 +147,6 @@ Below is a detailed breakdown of the technologies used and their purpose within 
 | **Spring JDBC**                   | Low-level JDBC support                                        |
 | **Spring Session JDBC**           | Persistent session storage backed by the database             |
 | **Jackson Databind**              | JSON serialization and deserialization                        |
-| **Lombok**                        | Boilerplate code reduction                                    |
 | **Spring Boot DevTools**          | Development-time hot reload support                           |
 | **Spring Boot Docker Compose**    | Local development Docker Compose integration                  |
 | **JUnit 5**                       | Unit and integration testing framework                        |
@@ -597,6 +544,15 @@ docker compose down -v
 
 ---
 
+## Code Formatting (Spotless)
+
+`sh
+./mvnw spotless:apply
+./mvnw spotless:check
+./mvnw verify
+`
+
+---
 ## 🧪 Testing with Docker
 
 ```sh

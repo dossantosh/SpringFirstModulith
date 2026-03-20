@@ -8,7 +8,6 @@ RUN --mount=type=cache,target=/root/.m2 mvn -q -DskipTests dependency:go-offline
 COPY src ./src
 RUN --mount=type=cache,target=/root/.m2 mvn -q -DskipTests clean package
 
-# Pick the executable Spring Boot jar and normalize its name for runtime copy.
 RUN set -eu; \
     jar="$(find target -maxdepth 1 -type f -name '*.jar' \
       ! -name '*-sources.jar' ! -name '*-javadoc.jar' ! -name 'original-*.jar' | head -n 1)"; \
