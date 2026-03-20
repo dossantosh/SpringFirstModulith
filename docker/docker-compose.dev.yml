@@ -1,0 +1,10 @@
+services:
+  backend:
+    build:
+      context: ..
+    image: springfirstmodulith:dev
+
+  frontend:
+    build:
+      context: ../../AngularModulith
+    image: angularmodulith:dev

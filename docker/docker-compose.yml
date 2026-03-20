@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${DB_EXPOSED_PORT}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./01-create-historic-db.sql:/docker-entrypoint-initdb.d/01-create-historic-db.sql:ro
+
+  backend:
+    image: ghcr.io/dossantosh/springfirstmodulith:main
+    #image: ghcr.io/dossantosh/springfirstmodulith:flywayImplementation
+    environment:
+      #SPRING_SESSION_JDBC_INITIALIZE_SCHEMA: never
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_HIST_NAME: ${DB_HIST_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SERVER_PORT: ${SERVER_PORT}
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    depends_on:
+      - db
+
+  frontend:
+    image: ghcr.io/dossantosh/angularmodulith:main
+    #image: ghcr.io/dossantosh/angularmodulith:Database-Runtime-Routing
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

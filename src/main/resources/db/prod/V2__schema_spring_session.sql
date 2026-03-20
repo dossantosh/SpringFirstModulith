@@ -1,19 +1,19 @@
--- Spring Session (PROD ONLY)
-
-CREATE TABLE public.spring_session (
-    primary_id character(36) NOT NULL,
-    session_id character(36) NOT NULL,
-    creation_time bigint NOT NULL,
-    last_access_time bigint NOT NULL,
-    max_inactive_interval integer NOT NULL,
-    expiry_time bigint NOT NULL,
-    principal_name character varying(100)
+CREATE TABLE public.spring_session
+(
+    primary_id            character(36) NOT NULL,
+    session_id            character(36) NOT NULL,
+    creation_time         bigint        NOT NULL,
+    last_access_time      bigint        NOT NULL,
+    max_inactive_interval integer       NOT NULL,
+    expiry_time           bigint        NOT NULL,
+    principal_name        character varying(100)
 );
 
-CREATE TABLE public.spring_session_attributes (
-    session_primary_id character(36) NOT NULL,
-    attribute_name character varying(200) NOT NULL,
-    attribute_bytes bytea NOT NULL
+CREATE TABLE public.spring_session_attributes
+(
+    session_primary_id character(36)          NOT NULL,
+    attribute_name     character varying(200) NOT NULL,
+    attribute_bytes    bytea                  NOT NULL
 );
 
 ALTER TABLE ONLY public.spring_session
@@ -30,4 +30,6 @@ ALTER TABLE ONLY public.spring_session_attributes
     ADD CONSTRAINT spring_session_attributes_fk
     FOREIGN KEY (session_primary_id)
     REFERENCES public.spring_session(primary_id)
-    ON DELETE CASCADE;
+    ON
+DELETE
+CASCADE;

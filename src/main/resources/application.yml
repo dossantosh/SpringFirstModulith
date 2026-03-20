@@ -1,0 +1,123 @@
+spring:
+  application:
+    name: springfirstmodulith
+  config:
+    import: "optional:file:.env[.properties]"
+  datasource:
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    defer-datasource-initialization: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        cache:
+          use_second_level_cache: false
+        jdbc:
+          batch_size: 100
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+        generate_statistics: true
+  sql:
+    init:
+      mode: never
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: never
+      cleanup-cron: "0 */5 * * * *"
+  web:
+    error:
+      whitelabel:
+        enabled: false
+  docker:
+    compose:
+      enabled: false
+  flyway:
+    enabled: false
+
+app:
+  datasource:
+    prod:
+      url: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+      username: "${DB_USER}"
+      password: "${DB_PASSWORD}"
+      hikari:
+        minimum-idle: 5
+        maximum-pool-size: 100
+        idle-timeout: 50000
+    historic:
+      url: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_HIST_NAME}"
+      username: "${DB_USER}"
+      password: "${DB_PASSWORD}"
+      hikari:
+        minimum-idle: 1
+        maximum-pool-size: 20
+        idle-timeout: 50000
+    session:
+      url: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}"
+      username: "${DB_USER}"
+      password: "${DB_PASSWORD}"
+      hikari:
+        minimum-idle: 1
+        maximum-pool-size: 20
+        idle-timeout: 50000
+  security:
+    session-cookie:
+      same-site: Lax
+      secure: false
+
+server:
+  port: "${SERVER_PORT}"
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      timeout: 30m
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - metrics
+          - env
+          - beans
+          - loggers
+          - httpexchanges
+          - auditevents
+          - hikari
+      base-path: /actuator
+  endpoint:
+    hikari:
+      enabled: true
+    health:
+      show-details: always
+
+springdoc:
+  show-actuator: true
+  use-management-port: true
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    root: INFO
+    com.dossantosh: INFO
+    org.springframework.security: INFO
+    org.springframework.security.web.FilterChainProxy: WARN
+    org.springframework.session: INFO
+    org.springframework.session.web.http.SessionRepositoryFilter.SESSION_LOGGER: OFF
+    org.springframework.boot.session.jdbc: INFO
+    org.springframework.jdbc.datasource.init: INFO
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql.BasicBinder: OFF
+    org.hibernate.orm.jdbc.bind: OFF
+    com.zaxxer.hikari: INFO
+    com.zaxxer.hikari.HikariConfig: OFF
+    com.zaxxer.hikari.pool.HikariPool: INFO
+    com.zaxxer.hikari.pool.PoolBase: INFO
