@@ -1,4 +1,4 @@
-@ApplicationModule
+@ApplicationModule(allowedDependencies = {})
 
 package com.dossantosh.springfirstmodulith.perfumes;
 

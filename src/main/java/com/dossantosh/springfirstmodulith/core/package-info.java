@@ -1,4 +1,4 @@
-@ApplicationModule(type = ApplicationModule.Type.OPEN)
+@ApplicationModule(allowedDependencies = {})
 
 package com.dossantosh.springfirstmodulith.core;
 

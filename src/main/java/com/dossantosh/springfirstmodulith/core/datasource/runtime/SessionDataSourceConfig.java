@@ -9,23 +9,18 @@ import org.springframework.session.jdbc.config.annotation.SpringSessionDataSourc
 
 import javax.sql.DataSource;
 
-/**
- * Spring Session (JDBC) MUST use a stable, non-routed DataSource.
- */
 @Configuration
 public class SessionDataSourceConfig {
 
-    @Bean
-    @ConfigurationProperties("app.datasource.session")
-    public DataSourceProperties sessionDataSourceProperties() {
-        return new DataSourceProperties();
-    }
+	@Bean
+	@ConfigurationProperties("app.datasource.session")
+	public DataSourceProperties sessionDataSourceProperties() {
+		return new DataSourceProperties();
+	}
 
-    @Bean
-    @SpringSessionDataSource
-    public DataSource sessionDataSource(DataSourceProperties sessionDataSourceProperties) {
-        return sessionDataSourceProperties.initializeDataSourceBuilder()
-                .type(HikariDataSource.class)
-                .build();
-    }
+	@Bean
+	@SpringSessionDataSource
+	public DataSource sessionDataSource(DataSourceProperties sessionDataSourceProperties) {
+		return sessionDataSourceProperties.initializeDataSourceBuilder().type(HikariDataSource.class).build();
+	}
 }
