@@ -1,144 +1,106 @@
 package com.dossantosh.springfirstmodulith.users;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.dossantosh.springfirstmodulith.core.page.Direction;
+import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
+import com.dossantosh.springfirstmodulith.users.application.ports.out.UserQueryPort;
+import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
+import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.dossantosh.springfirstmodulith.core.page.Direction;
-import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
-import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
-import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
-import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
-import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserQueryServiceTest {
 
-    @Mock
-    private UserRepository userRepository;
+	@Mock
+	private UserQueryPort userQueryPort;
 
-    @InjectMocks
-    private UserQueryService userQueryService;
+	@InjectMocks
+	private UserQueryService userQueryService;
 
-    @Test
-    void findUsersKeyset_next_firstPage_hasMore_setsCursorsAndFlags() {
-        int limit = 2;
+	@Test
+	void findUsersKeyset_next_firstPage_hasMore_setsCursorsAndFlags() {
+		int limit = 2;
 
-        UserProjection p1 = mock(UserProjection.class);
-        when(p1.getId()).thenReturn(10L);
-        when(p1.getUsername()).thenReturn("u1");
-        when(p1.getEmail()).thenReturn("e1");
-        when(p1.getEnabled()).thenReturn(true);
-        when(p1.getIsAdmin()).thenReturn(false);
+		UserQueryPort.UserSummaryRow p1 = new UserQueryPort.UserSummaryRow(10L, "u1", "e1", true, false);
+		UserQueryPort.UserSummaryRow p2 = new UserQueryPort.UserSummaryRow(11L, "u2", "e2", true, false);
+		UserQueryPort.UserSummaryRow extra = new UserQueryPort.UserSummaryRow(12L, "u3", "e3", true, false);
 
-        UserProjection p2 = mock(UserProjection.class);
-        when(p2.getId()).thenReturn(11L);
-        when(p2.getUsername()).thenReturn("u2");
-        when(p2.getEmail()).thenReturn("e2");
-        when(p2.getEnabled()).thenReturn(true);
-        when(p2.getIsAdmin()).thenReturn(false);
+		when(userQueryPort.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
+				.thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
 
-        UserProjection extra = mock(UserProjection.class);
+		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
+				Direction.NEXT);
 
-        when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
-                .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
+		assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
+		assertThat(page.getNextId()).isEqualTo(11L);
+		assertThat(page.getPreviousId()).isEqualTo(10L);
+		assertThat(page.isHasNext()).isTrue();
+		assertThat(page.isHasPrevious()).isFalse();
+	}
 
-        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
-                Direction.NEXT);
+	@Test
+	void findUsersKeyset_next_firstPage_noMore_setsHasNextFalse() {
+		int limit = 2;
 
-        assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
-        assertThat(page.getNextId()).isEqualTo(11L);
-        assertThat(page.getPreviousId()).isEqualTo(10L);
-        assertThat(page.isHasNext()).isTrue();
-        assertThat(page.isHasPrevious()).isFalse();
-    }
+		UserQueryPort.UserSummaryRow p1 = new UserQueryPort.UserSummaryRow(10L, "u1", "e1", true, false);
+		UserQueryPort.UserSummaryRow p2 = new UserQueryPort.UserSummaryRow(11L, "u2", "e2", true, false);
 
-    @Test
-    void findUsersKeyset_next_firstPage_noMore_setsHasNextFalse() {
-        int limit = 2;
+		when(userQueryPort.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
+				.thenReturn(new ArrayList<>(List.of(p1, p2)));
 
-        UserProjection p1 = mock(UserProjection.class);
-        when(p1.getId()).thenReturn(10L);
-        when(p1.getUsername()).thenReturn("u1");
-        when(p1.getEmail()).thenReturn("e1");
-        when(p1.getEnabled()).thenReturn(true);
-        when(p1.getIsAdmin()).thenReturn(false);
+		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
+				Direction.NEXT);
 
-        UserProjection p2 = mock(UserProjection.class);
-        when(p2.getId()).thenReturn(11L);
-        when(p2.getUsername()).thenReturn("u2");
-        when(p2.getEmail()).thenReturn("e2");
-        when(p2.getEnabled()).thenReturn(true);
-        when(p2.getIsAdmin()).thenReturn(false);
+		assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
+		assertThat(page.isHasNext()).isFalse();
+		assertThat(page.isHasPrevious()).isFalse();
+	}
 
-        when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
-                .thenReturn(new ArrayList<>(List.of(p1, p2)));
+	@Test
+	void findUsersKeyset_previous_hasMore_reversesToAscending_andSetsFlags() {
+		int limit = 2;
+		Long lastId = 20L;
 
-        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
-                Direction.NEXT);
+		UserQueryPort.UserSummaryRow p1 = new UserQueryPort.UserSummaryRow(11L, "u2", "u2@x.com", true, false);
+		UserQueryPort.UserSummaryRow p2 = new UserQueryPort.UserSummaryRow(10L, "u1", "u1@x.com", true, false);
+		UserQueryPort.UserSummaryRow extra = new UserQueryPort.UserSummaryRow(9L, "u0", "u0@x.com", true, false);
 
-        assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
-        assertThat(page.isHasNext()).isFalse();
-        assertThat(page.isHasPrevious()).isFalse();
-    }
+		when(userQueryPort.findUsersKeyset(null, null, null, lastId, limit + 1, Direction.PREVIOUS.name()))
+				.thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
 
-    @Test
-    void findUsersKeyset_previous_hasMore_reversesToAscending_andSetsFlags() {
-        int limit = 2;
-        Long lastId = 20L;
+		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, lastId, limit,
+				Direction.PREVIOUS);
 
-        UserProjection p1 = mock(UserProjection.class);
-        when(p1.getId()).thenReturn(11L);
-        when(p1.getUsername()).thenReturn("u2");
-        when(p1.getEmail()).thenReturn("u2@x.com");
-        when(p1.getEnabled()).thenReturn(true);
-        when(p1.getIsAdmin()).thenReturn(false);
+		assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
+		assertThat(page.getPreviousId()).isEqualTo(10L);
+		assertThat(page.getNextId()).isEqualTo(11L);
+		assertThat(page.isHasPrevious()).isTrue();
+		assertThat(page.isHasNext()).isTrue();
+	}
 
-        UserProjection p2 = mock(UserProjection.class);
-        when(p2.getId()).thenReturn(10L);
-        when(p2.getUsername()).thenReturn("u1");
-        when(p2.getEmail()).thenReturn("u1@x.com");
-        when(p2.getEnabled()).thenReturn(true);
-        when(p2.getIsAdmin()).thenReturn(false);
+	@Test
+	void findUsersKeyset_whenNoResults_returnsEmptyPageWithNullCursors() {
+		int limit = 10;
 
-        UserProjection extra = mock(UserProjection.class);
+		when(userQueryPort.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
+				.thenReturn(new ArrayList<>());
 
-        when(userRepository.findUsersKeyset(null, null, null, lastId, limit + 1, Direction.PREVIOUS.name()))
-                .thenReturn(new ArrayList<>(List.of(p1, p2, extra)));
+		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
+				Direction.NEXT);
 
-        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, lastId, limit,
-                Direction.PREVIOUS);
-
-        assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
-        assertThat(page.getPreviousId()).isEqualTo(10L);
-        assertThat(page.getNextId()).isEqualTo(11L);
-        assertThat(page.isHasPrevious()).isTrue();
-        assertThat(page.isHasNext()).isTrue();
-    }
-
-    @Test
-    void findUsersKeyset_whenNoResults_returnsEmptyPageWithNullCursors() {
-        int limit = 10;
-
-        when(userRepository.findUsersKeyset(null, null, null, null, limit + 1, Direction.NEXT.name()))
-                .thenReturn(new ArrayList<>());
-
-        KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
-                Direction.NEXT);
-
-        assertThat(page.getContent()).isEmpty();
-        assertThat(page.getNextId()).isNull();
-        assertThat(page.getPreviousId()).isNull();
-        assertThat(page.isHasNext()).isFalse();
-        assertThat(page.isHasPrevious()).isFalse();
-    }
+		assertThat(page.getContent()).isEmpty();
+		assertThat(page.getNextId()).isNull();
+		assertThat(page.getPreviousId()).isNull();
+		assertThat(page.isHasNext()).isFalse();
+		assertThat(page.isHasPrevious()).isFalse();
+	}
 }

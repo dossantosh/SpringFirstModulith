@@ -1,84 +1,102 @@
 package com.dossantosh.springfirstmodulith.users.api.controllers;
 
-import org.springframework.web.bind.annotation.*;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
+import com.dossantosh.springfirstmodulith.users.api.requests.CreateUserRequest;
+import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRequest;
+import com.dossantosh.springfirstmodulith.users.api.requests.UserAccessRequest;
+import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
+import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
 import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
 import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
+import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
+import com.dossantosh.springfirstmodulith.users.domain.UserChanges;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * REST controller for managing user-related operations.
- *
- * <p>
- * This controller provides endpoints to:
- * <ul>
- * <li>Retrieve a paginated list of users using keyset pagination</li>
- * <li>Get the full details of a specific user by ID</li>
- * </ul>
- */
 @RestController
-@RequiredArgsConstructor
 @PreAuthorize("hasAuthority('MODULE_USERS')")
 @RequestMapping("/api/users")
 public class UserController {
 
-    private final UserQueryService userQueryService;
+	private final UserCommandService userCommandService;
+	private final UserAccessResolverService userAccessResolverService;
+	private final UserQueryService userQueryService;
 
-    /**
-     * Retrieves a list of users using keyset pagination, with optional filtering by
-     * ID, username, or email.
-     *
-     * @param id        (optional) Exact user ID to filter by
-     * @param username  (optional) Username starts with (case-insensitive)
-     * @param email     (optional) Email starts with (case-insensitive)
-     * @param lastId    (optional) Last loaded ID for keyset pagination
-     * @param limit     Maximum number of results to return (default: 50)
-     * @param direction Pagination direction: "NEXT" or "PREVIOUS" (default: NEXT)
-     * @return {@link ResponseEntity} containing a {@link KeysetPage} of
-     *         {@link UserSummaryView},
-     *         or 400 Bad Request if direction is invalid, or 500 Internal Server
-     *         Error if service fails
-     */
-    @GetMapping
-    public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(
-            @RequestParam(required = false) Long id,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) Long lastId,
-            @RequestParam(defaultValue = "25") int limit,
-            @RequestParam(defaultValue = "NEXT") String direction) {
+	public UserController(UserCommandService userCommandService, UserAccessResolverService userAccessResolverService,
+			UserQueryService userQueryService) {
+		this.userCommandService = userCommandService;
+		this.userAccessResolverService = userAccessResolverService;
+		this.userQueryService = userQueryService;
+	}
 
-        Direction dir;
-        try {
-            dir = Direction.valueOf(direction.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+	@GetMapping
+	public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(@RequestParam(required = false) Long id,
+			@RequestParam(required = false) String username, @RequestParam(required = false) String email,
+			@RequestParam(required = false) Long lastId, @RequestParam(defaultValue = "25") int limit,
+			@RequestParam(defaultValue = "NEXT") String direction) {
 
-        KeysetPage<UserSummaryView> users = userQueryService.findUsersKeyset(
-                id,
-                username != null ? username.toLowerCase() : null,
-                email != null ? email.toLowerCase() : null,
-                lastId,
-                limit,
-                dir);
+		Direction dir;
+		try {
+			dir = Direction.valueOf(direction.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().build();
+		}
 
-        if (users == null) {
-            return ResponseEntity.status(500).body(null); 
-        }
+		KeysetPage<UserSummaryView> users = userQueryService.findUsersKeyset(id,
+				username != null ? username.toLowerCase() : null, email != null ? email.toLowerCase() : null, lastId,
+				limit, dir);
 
-        return ResponseEntity.ok(users);
-    }
+		if (users == null) {
+			return ResponseEntity.status(500).body(null);
+		}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
+		return ResponseEntity.ok(users);
+	}
 
-        return ResponseEntity.ok(userQueryService.getUserDetails(id));
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
+
+		return ResponseEntity.ok(userQueryService.getUserDetails(id));
+	}
+
+	@PostMapping
+	public ResponseEntity<UserDetailsView> createUser(@Valid @RequestBody CreateUserRequest request) {
+		User user = new User(request.username(), request.email(), request.password(), request.isAdmin());
+		UserAccess access = toUserAccessOrNull(request.access());
+		if (access != null) {
+			user.replaceAccess(access);
+		}
+
+		User created = userCommandService.createUser(user);
+		return ResponseEntity.status(201).body(userQueryService.getUserDetails(created.id()));
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<UserDetailsView> updateUser(@PathVariable Long id,
+			@Valid @RequestBody UpdateUserRequest request) {
+		UserAccess access = toUserAccessOrNull(request.access());
+		UserChanges changes = new UserChanges(request.username(), request.email(), request.enabled(),
+				request.password(), request.isAdmin(), access);
+
+		User updated = userCommandService.modifyUser(id, changes);
+		return ResponseEntity.ok(userQueryService.getUserDetails(updated.id()));
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+		userCommandService.deleteById(id);
+		return ResponseEntity.noContent().build();
+	}
+
+	private UserAccess toUserAccessOrNull(UserAccessRequest request) {
+		if (request == null) {
+			return null;
+		}
+		return userAccessResolverService.resolve(request.roleIds(), request.moduleIds(), request.submoduleIds());
+	}
 }

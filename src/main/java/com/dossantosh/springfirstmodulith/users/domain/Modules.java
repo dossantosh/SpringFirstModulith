@@ -1,42 +1,72 @@
 package com.dossantosh.springfirstmodulith.users.domain;
 
+import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@Getter
-@NoArgsConstructor
+@Entity
+@Table(name = "modules")
 public class Modules {
 
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id_module")
+	private Long id;
 
-    private String name;
+	@Column(unique = true, length = 50, nullable = false)
+	private String name;
 
-    public Modules(String name) {
-        this.name = name;
-    }
+	private Modules(Long id, String name) {
+		this.id = id;
+		this.name = normalizeRequiredName(name, "module name");
+		if (id != null && id <= 0) {
+			throw new BusinessException("module id must be positive");
+		}
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	protected Modules() {
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public static Modules named(String name) {
+		return new Modules(null, name);
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Modules modules = (Modules) o;
-        return Objects.equals(id, modules.id);
-    }
+	public static Modules reference(Long id, String name) {
+		return new Modules(id, name);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+	public Long id() {
+		return id;
+	}
+
+	public String name() {
+		return name;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Modules modules)) {
+			return false;
+		}
+		if (id != null && modules.id != null) {
+			return Objects.equals(id, modules.id);
+		}
+		return Objects.equals(name, modules.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return id != null ? Objects.hash(id) : Objects.hash(name);
+	}
+
+	private static String normalizeRequiredName(String value, String fieldName) {
+		if (value == null || value.isBlank()) {
+			throw new BusinessException(fieldName + " cannot be blank");
+		}
+		return value.trim();
+	}
 }

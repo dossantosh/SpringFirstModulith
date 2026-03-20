@@ -1,16 +1,13 @@
 package com.dossantosh.springfirstmodulith.users.infrastructure.projections;
 
-/**
- * Projection interface to fetch essential user authentication data.
- */
 public interface UserProjection {
-    Long getId();
+	Long getId();
 
-    String getUsername();
+	String getUsername();
 
-    String getEmail();
+	String getEmail();
 
-    Boolean getEnabled();
+	Boolean getEnabled();
 
-    Boolean getIsAdmin();
+	Boolean getIsAdmin();
 }

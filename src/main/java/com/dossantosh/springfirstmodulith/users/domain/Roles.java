@@ -1,40 +1,72 @@
 package com.dossantosh.springfirstmodulith.users.domain;
 
+import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@Getter
-@NoArgsConstructor
+@Entity
+@Table(name = "roles")
 public class Roles {
 
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id_role")
+	private Long id;
 
-    private String name;
+	@Column(unique = true, length = 20)
+	private String name;
 
-    public Roles(String name) {
-        this.name = name;
-    }
+	private Roles(Long id, String name) {
+		this.id = id;
+		this.name = normalizeRequiredName(name, "role name");
+		if (id != null && id <= 0) {
+			throw new BusinessException("role id must be positive");
+		}
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	protected Roles() {
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public static Roles named(String name) {
+		return new Roles(null, name);
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Roles roles = (Roles) o;
-        return Objects.equals(id, roles.id);
-    }
+	public static Roles reference(Long id, String name) {
+		return new Roles(id, name);
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+	public Long id() {
+		return id;
+	}
+
+	public String name() {
+		return name;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Roles roles)) {
+			return false;
+		}
+		if (id != null && roles.id != null) {
+			return Objects.equals(id, roles.id);
+		}
+		return Objects.equals(name, roles.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return id != null ? Objects.hash(id) : Objects.hash(name);
+	}
+
+	private static String normalizeRequiredName(String value, String fieldName) {
+		if (value == null || value.isBlank()) {
+			throw new BusinessException(fieldName + " cannot be blank");
+		}
+		return value.trim();
+	}
 }

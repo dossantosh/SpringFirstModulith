@@ -1,14 +1,13 @@
 package com.dossantosh.springfirstmodulith.users.infrastructure.repos;
 
-import java.util.Optional;
-
+import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.dossantosh.springfirstmodulith.users.infrastructure.entities.ModuleJpaEntity;
+import java.util.Optional;
 
 @Repository
-public interface ModuleRepository extends JpaRepository<ModuleJpaEntity, Long> {
+public interface ModuleRepository extends JpaRepository<Modules, Long> {
 
-    Optional<ModuleJpaEntity> findByNameIgnoreCase(String name);
+	Optional<Modules> findByNameIgnoreCase(String name);
 }

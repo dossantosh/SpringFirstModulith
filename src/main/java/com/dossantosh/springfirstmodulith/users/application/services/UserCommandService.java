@@ -1,44 +1,69 @@
 package com.dossantosh.springfirstmodulith.users.application.services;
 
-import org.springframework.stereotype.Service;
-
+import com.dossantosh.springfirstmodulith.users.application.ports.out.UserCommandPort;
 import com.dossantosh.springfirstmodulith.users.domain.User;
 import com.dossantosh.springfirstmodulith.users.domain.UserChanges;
-import com.dossantosh.springfirstmodulith.users.infrastructure.mappers.UserMapper;
-import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
-
+import com.dossantosh.springfirstmodulith.users.domain.ports.UserUniquenessPolicy;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@RequiredArgsConstructor
 @Service
 public class UserCommandService {
 
-    private final UserRepository userRepository;
-    private final DefaultUserAccessPolicyService defaultUserAccessPolicyService;
+	private final UserCommandPort userCommandPort;
+	private final DefaultUserAccessPolicyService defaultUserAccessPolicyService;
+	private final UserUniquenessPolicy userUniquenessPolicy;
+	private final PasswordEncoder passwordEncoder;
 
-    public void deleteById(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new EntityNotFoundException("User with ID " + id + " not found");
-        }
+	public UserCommandService(UserCommandPort userCommandPort,
+			DefaultUserAccessPolicyService defaultUserAccessPolicyService, UserUniquenessPolicy userUniquenessPolicy,
+			PasswordEncoder passwordEncoder) {
+		this.userCommandPort = userCommandPort;
+		this.defaultUserAccessPolicyService = defaultUserAccessPolicyService;
+		this.userUniquenessPolicy = userUniquenessPolicy;
+		this.passwordEncoder = passwordEncoder;
+	}
 
-        userRepository.deleteById(id);
-    }
+	@Transactional
+	public void deleteById(Long id) {
+		if (!userCommandPort.existsById(id)) {
+			throw new EntityNotFoundException("User with ID " + id + " not found");
+		}
+		userCommandPort.deleteById(id);
+	}
 
-    public void modifyUser(UserChanges changes, User existingUser) {
-        existingUser.applyChangesFrom(changes);
-        save(existingUser);
-    }
+	@Transactional
+	public User modifyUser(Long userId, UserChanges changes) {
+		User existingUser = userCommandPort.findById(userId)
+				.orElseThrow(() -> new EntityNotFoundException("User with ID " + userId + " not found"));
 
-    public void createUser(User user) {
-        user.prepareForCreation();
-        if (user.hasNoAccessAssigned()) {
-            user.replaceAccess(defaultUserAccessPolicyService.defaultAccessForNewUser());
-        }
-        save(user);
-    }
+		UserChanges normalizedChanges = changes;
+		if (hasText(changes.password())) {
+			normalizedChanges = new UserChanges(changes.username(), changes.email(), changes.enabled(),
+					passwordEncoder.encode(changes.password()), changes.isAdmin(), changes.access());
+		}
 
-    private User save(User user) {
-        return UserMapper.toDomain(userRepository.save(UserMapper.toJpaEntity(user)));
-    }
+		existingUser.applyChangesFrom(normalizedChanges, userUniquenessPolicy);
+		return save(existingUser);
+	}
+
+	@Transactional
+	public User createUser(User user) {
+		user.prepareForCreation(userUniquenessPolicy);
+		if (user.hasNoAccessAssigned()) {
+			user.replaceAccess(defaultUserAccessPolicyService.defaultAccessForNewUser());
+		}
+		user.changePassword(passwordEncoder.encode(user.passwordHash()));
+		return save(user);
+	}
+
+	private static boolean hasText(String value) {
+		return value != null && !value.isBlank();
+	}
+
+	private User save(User user) {
+		return userCommandPort.save(user);
+	}
 }

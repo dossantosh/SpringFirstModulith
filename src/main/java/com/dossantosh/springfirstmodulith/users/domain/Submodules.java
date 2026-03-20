@@ -1,51 +1,88 @@
 package com.dossantosh.springfirstmodulith.users.domain;
 
+import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
+import jakarta.persistence.*;
+
 import java.util.Objects;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-@Getter
-@NoArgsConstructor
+@Entity
+@Table(name = "submodules", uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "id_module"})})
 public class Submodules {
 
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id_submodule")
+	private Long id;
 
-    private String name;
+	@Column(length = 50)
+	private String name;
 
-    private Modules module;
+	@ManyToOne
+	@JoinColumn(name = "id_module")
+	private Modules module;
 
-    public Submodules(String name, Modules module) {
-        this.name = name;
-        this.module = module;
-    }
+	private Submodules(Long id, String name, Modules module) {
+		this.id = id;
+		this.name = normalizeRequiredName(name, "submodule name");
+		if (id != null && id <= 0) {
+			throw new BusinessException("submodule id must be positive");
+		}
+		if (module == null) {
+			throw new BusinessException("submodule module cannot be null");
+		}
+		this.module = module;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	protected Submodules() {
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public static Submodules named(String name, Modules module) {
+		return new Submodules(null, name, module);
+	}
 
-    public void setModule(Modules module) {
-        this.module = module;
-    }
+	public static Submodules reference(Long id, String name, Modules module) {
+		return new Submodules(id, name, module);
+	}
 
-    public boolean belongsTo(Modules module) {
-        return this.module != null && this.module.equals(module);
-    }
+	public Long id() {
+		return id;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Submodules that = (Submodules) o;
-        return Objects.equals(id, that.id);
-    }
+	public String name() {
+		return name;
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
+	public Modules module() {
+		return module;
+	}
+
+	public boolean belongsTo(Modules module) {
+		return this.module.equals(module);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Submodules that)) {
+			return false;
+		}
+		if (id != null && that.id != null) {
+			return Objects.equals(id, that.id);
+		}
+		return Objects.equals(name, that.name) && Objects.equals(module, that.module);
+	}
+
+	@Override
+	public int hashCode() {
+		return id != null ? Objects.hash(id) : Objects.hash(name, module);
+	}
+
+	private static String normalizeRequiredName(String value, String fieldName) {
+		if (value == null || value.isBlank()) {
+			throw new BusinessException(fieldName + " cannot be blank");
+		}
+		return value.trim();
+	}
 }
