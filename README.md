@@ -167,12 +167,12 @@ DB_NAME=SpringFirstModulithDB
 
 DB_HIST_NAME=SpringFirstModulithDBHistoric
 
-SERVER_PORT=9090
+SERVER_PORT=7070
 
 DB_USER=user
 DB_PASSWORD=secret
 
-MANAGEMENT_PORT=9090
+MANAGEMENT_PORT=7070
 ```
 
 ---
@@ -408,9 +408,9 @@ mvn spring-boot:run
 
 The application will start on:
 
-- **Application**: `http://localhost:9090`
-- **Swagger UI**: `http://localhost:9090/swagger-ui.html`
-- **Actuator**: `http://localhost:9090/actuator`
+- **Application**: `http://localhost:7070`
+- **Swagger UI**: `http://localhost:7070/swagger-ui.html`
+- **Actuator**: `http://localhost:7070/actuator`
 
 ---
 
@@ -446,14 +446,15 @@ services:
   db:
     image: postgres:17
     environment:
-      POSTGRES_DB: SpringFirstModulithDB
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Sb202582
+      DB_NAME: SpringFirstModulithDB
+      DB_HIST_NAME: SpringFirstModulithDBHistoric
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./01-create-historic-db.sql:/docker-entrypoint-initdb.d/01-create-historic-db.sql:ro
+      - ./01-create-databases.sh:/docker-entrypoint-initdb.d/01-create-databases.sh:ro
 
   backend:
     image: ghcr.io/dossantosh/springfirstmodulith:main
@@ -466,9 +467,9 @@ services:
       DB_HIST_NAME: SpringFirstModulithDBHistoric
       DB_USER: postgres
       DB_PASSWORD: Sb202582
-      SERVER_PORT: 9090
+      SERVER_PORT: 7070
     ports:
-      - "9090:9090"
+      - "7070:7070"
     depends_on:
       - db
 
@@ -499,14 +500,28 @@ services:
     image: angularmodulith:dev
 ```
 
-### Init script for historic DB
+### Init script for database creation
 
-**docker/initdb/01-create-historic-db.sql**
+**docker/01-create-databases.sh**
 
-```sql
--- Create historic DB (only if it doesn't exist)
-SELECT 'CREATE DATABASE "SpringFirstModulithDBHistoric"'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'SpringFirstModulithDBHistoric')\gexec
+```sh
+#!/bin/sh
+set -eu
+
+create_db_if_missing() {
+  db_name="$1"
+
+  if psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres -tAc \
+    "SELECT 1 FROM pg_database WHERE datname = '$db_name'" | grep -q 1; then
+    echo "Database '$db_name' already exists"
+  else
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres \
+      -c "CREATE DATABASE \"$db_name\""
+  fi
+}
+
+create_db_if_missing "$DB_NAME"
+create_db_if_missing "$DB_HIST_NAME"
 ```
 
 Run everything:

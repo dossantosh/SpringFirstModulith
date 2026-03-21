@@ -4,14 +4,16 @@ This folder contains the Docker Compose setup used to run the app (and its datab
 
 ## 0) Environment variables
 
-The runtime variables are now centralized in `.env`.
+Use the env file that matches how you run the app:
+
+- Root `.env`: local Spring Boot runs outside Docker
+- `docker/.env`: Docker Compose runs
 
 Examples:
-- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
-- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_HIST_NAME`, `DB_USER`, `DB_PASSWORD`
+- `DB_NAME`, `DB_HIST_NAME`, `DB_USER`, `DB_PASSWORD`
 - `SERVER_PORT`, `DB_EXPOSED_PORT`, `FRONTEND_PORT`
 
-Docker Compose loads `.env` automatically when you run commands from this folder.
+Docker Compose loads `docker/.env` automatically when you run commands from this folder.
 
 ## 1) Prerequisites
 
@@ -50,6 +52,8 @@ From this folder:
 
 ## 5) How Flyway behaves in Docker
 
+- Docker creates both physical databases first via `01-create-databases.sh`.
+- The backend then runs Flyway against both datasources.
 - Flyway runs automatically when the backend starts.
 - Migrations live under:
   - `src/main/resources/db/common/` (shared schema + seed)
