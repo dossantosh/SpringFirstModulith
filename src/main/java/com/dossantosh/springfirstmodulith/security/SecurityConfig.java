@@ -41,14 +41,14 @@ public class SecurityConfig {
 
 		jsonLoginFilter.setAuthenticationSuccessHandler((request, response, authentication) -> {
 
-			Object rawView = request.getAttribute(JsonUsernamePasswordAuthenticationFilter.REQ_ATTR_DATA_VIEW);
-			String view = rawView == null ? "prod" : rawView.toString();
+			Object rawDataSource = request.getAttribute(JsonUsernamePasswordAuthenticationFilter.REQ_ATTR_DATA_SOURCE);
+			String dataSource = rawDataSource == null ? "prod" : rawDataSource.toString();
 
-			if (!"historic".equals(view)) {
-				view = "prod";
+			if (!"historic".equals(dataSource)) {
+				dataSource = "prod";
 			}
 
-			request.getSession(true).setAttribute(DataViewFromSessionFilter.SESSION_KEY, view);
+			request.getSession(true).setAttribute(DataViewFromSessionFilter.SESSION_KEY, dataSource);
 
 			response.setStatus(200);
 			response.setContentType("application/json");

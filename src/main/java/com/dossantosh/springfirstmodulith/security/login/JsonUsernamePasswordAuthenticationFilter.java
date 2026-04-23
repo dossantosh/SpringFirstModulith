@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-	public static final String REQ_ATTR_DATA_VIEW = "REQ_DATA_VIEW";
+	public static final String REQ_ATTR_DATA_SOURCE = "REQ_DATA_SOURCE";
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -39,8 +39,9 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
 			String username = body.getOrDefault("username", "").toString();
 			String password = body.getOrDefault("password", "").toString();
 
-			String view = body.getOrDefault("view", "prod").toString();
-			request.setAttribute(REQ_ATTR_DATA_VIEW, view);
+			Object rawDataSource = body.containsKey("dataSource") ? body.get("dataSource") : body.getOrDefault("view", "prod");
+			String dataSource = rawDataSource == null ? "prod" : rawDataSource.toString();
+			request.setAttribute(REQ_ATTR_DATA_SOURCE, dataSource);
 
 			UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(username,
 					password);
