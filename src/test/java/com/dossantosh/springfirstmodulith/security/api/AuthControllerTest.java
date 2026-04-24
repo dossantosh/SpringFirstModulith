@@ -17,7 +17,7 @@ class AuthControllerTest {
 	private final AuthController controller = new AuthController(currentSessionDataViewProvider);
 
 	@Test
-	void me_returnsUsernameAuthoritiesAndDataSourceFromSession() {
+	void me_returnsUsernameDataSourceAndCapabilitiesFromSession() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
 				List.of(new SimpleGrantedAuthority("MODULE_USERS"), new SimpleGrantedAuthority("SUBMODULE_READUSERS")));
 		MockHttpSession session = new MockHttpSession();
@@ -30,7 +30,6 @@ class AuthControllerTest {
 
 		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
 		assertThat(body.username()).isEqualTo("john");
-		assertThat(body.authorities()).containsExactly("MODULE_USERS", "SUBMODULE_READUSERS");
 		assertThat(body.dataSource()).isEqualTo("historic");
 		assertThat(body.capabilities().users()).isEqualTo(new FeatureCapabilityResponse(true, true, false));
 		assertThat(body.capabilities().perfumes()).isEqualTo(new FeatureCapabilityResponse(false, false, false));

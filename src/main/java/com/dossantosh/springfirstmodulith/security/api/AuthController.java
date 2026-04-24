@@ -29,7 +29,7 @@ public class AuthController {
 		String dataSource = currentDataViewQuery.getCurrentDataView(session);
 		var authorities = authentication.getAuthorities().stream().map(a -> a.getAuthority()).toList();
 
-		return ResponseEntity.ok(new AuthSessionResponse(authentication.getName(), authorities, dataSource,
+		return ResponseEntity.ok(new AuthSessionResponse(authentication.getName(), dataSource,
 				AuthCapabilitiesMapper.fromAuthorities(authorities)));
 	}
 
