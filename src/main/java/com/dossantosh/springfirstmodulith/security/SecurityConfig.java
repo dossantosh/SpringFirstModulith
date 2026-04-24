@@ -1,8 +1,10 @@
 package com.dossantosh.springfirstmodulith.security;
 
-import com.dossantosh.springfirstmodulith.core.datasource.runtime.DataViewFromSessionFilter;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
 import com.dossantosh.springfirstmodulith.security.login.JsonUsernamePasswordAuthenticationFilter;
+import com.dossantosh.springfirstmodulith.security.session.CurrentDataViewQuery;
+import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
+import com.dossantosh.springfirstmodulith.security.session.DataViewFromSessionFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -34,7 +36,8 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager,
-			DataViewFromSessionFilter dataViewFromSessionFilter) throws Exception {
+			DataViewFromSessionFilter dataViewFromSessionFilter,
+			CurrentSessionDataViewProvider currentSessionDataViewProvider) throws Exception {
 
 		JsonUsernamePasswordAuthenticationFilter jsonLoginFilter = new JsonUsernamePasswordAuthenticationFilter();
 		jsonLoginFilter.setAuthenticationManager(authenticationManager);
@@ -42,13 +45,8 @@ public class SecurityConfig {
 		jsonLoginFilter.setAuthenticationSuccessHandler((request, response, authentication) -> {
 
 			Object rawDataSource = request.getAttribute(JsonUsernamePasswordAuthenticationFilter.REQ_ATTR_DATA_SOURCE);
-			String dataSource = rawDataSource == null ? "prod" : rawDataSource.toString();
-
-			if (!"historic".equals(dataSource)) {
-				dataSource = "prod";
-			}
-
-			request.getSession(true).setAttribute(DataViewFromSessionFilter.SESSION_KEY, dataSource);
+			currentSessionDataViewProvider.storeCurrentDataView(request.getSession(true),
+					rawDataSource == null ? "prod" : rawDataSource.toString());
 
 			response.setStatus(200);
 			response.setContentType("application/json");
@@ -104,8 +102,8 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public DataViewFromSessionFilter dataViewFromSessionFilter() {
-		return new DataViewFromSessionFilter();
+	public DataViewFromSessionFilter dataViewFromSessionFilter(CurrentDataViewQuery currentDataViewQuery) {
+		return new DataViewFromSessionFilter(currentDataViewQuery);
 	}
 
 	@Bean

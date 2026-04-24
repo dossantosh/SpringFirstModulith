@@ -39,7 +39,9 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
 			String username = body.getOrDefault("username", "").toString();
 			String password = body.getOrDefault("password", "").toString();
 
-			Object rawDataSource = body.containsKey("dataSource") ? body.get("dataSource") : body.getOrDefault("view", "prod");
+			Object rawDataSource = body.containsKey("dataSource")
+					? body.get("dataSource")
+					: body.getOrDefault("view", "prod");
 			String dataSource = rawDataSource == null ? "prod" : rawDataSource.toString();
 			request.setAttribute(REQ_ATTR_DATA_SOURCE, dataSource);
 

@@ -41,9 +41,9 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 
 - User authentication and session handling
 - Centralized security module
-- Authentication controllers isolated in a dedicated module
+- Authentication endpoints owned by the security module
 - Session-aware request filtering
-- Clear separation between authentication, security, and user domains
+- Clear separation between technical security/session concerns and user domains
 - Module boundaries enforced at package level
 
 ### 🌐 Web & API
@@ -55,15 +55,10 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 
 ### 📦 Architecture
 
-**Auth Module:** Authentication entrypoints and login flows
-
-- Handles login, logout, and authentication-related controllers
-- Does _not_ contain business or security policy logic
-- Prevents authentication concerns from leaking into domain modules
-
 **Users Module:** Core user domain and business rules
 
 - Encapsulates user entities, use cases, and domain behavior
+- Remains the owner of user identity and user data accessed by login
 - Exposes functionality through **ports**
 - Uses adapters for persistence and external integrations
 - Remains independent from authentication and security infrastructure
@@ -77,6 +72,8 @@ Designed as a learning and reference project, it emphasizes **modularity, securi
 **Security Module:** Technical security enforcement
 
 - Centralizes Spring Security configuration
+- Owns login, logout, CSRF, current-user endpoints, and session-backed auth API
+- Uses `users/api/ports/login` to resolve identities without taking ownership of the users domain
 - Handles filters, session handling, and authorization rules
 - Contains _technical_ security concerns only
 - Does not encode business meaning or domain logic
