@@ -11,7 +11,8 @@ public class Permissions {
 	}
 
 	public boolean canReadUsers(Authentication authentication) {
-		return canAccessUsers(authentication) && hasAuthority(authentication, SecurityAuthorityNames.SUBMODULE_READ_USERS);
+		return canAccessUsers(authentication)
+				&& hasAuthority(authentication, SecurityAuthorityNames.SUBMODULE_READ_USERS);
 	}
 
 	public boolean canWriteUsers(Authentication authentication) {
