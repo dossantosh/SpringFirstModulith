@@ -31,12 +31,12 @@ class DefaultUserAccessPolicyServiceTest {
 	@Test
 	void defaultAccessForNewUser_resolvesBusinessNamedDefaults() {
 		Roles role = Roles.reference(1L, "USER");
-		Modules module = Modules.reference(2L, "Users");
-		Submodules submodule = Submodules.reference(3L, "ReadUsers", module);
+		Modules module = Modules.reference(2L, "USERS");
+		Submodules submodule = Submodules.reference(3L, "READUSERS", module);
 
 		when(accessCatalog.findRoleByName("USER")).thenReturn(Optional.of(role));
-		when(accessCatalog.findModuleByName("Users")).thenReturn(Optional.of(module));
-		when(accessCatalog.findSubmoduleByModuleAndName("Users", "ReadUsers")).thenReturn(Optional.of(submodule));
+		when(accessCatalog.findModuleByName("USERS")).thenReturn(Optional.of(module));
+		when(accessCatalog.findSubmoduleByModuleAndName("USERS", "READUSERS")).thenReturn(Optional.of(submodule));
 
 		UserAccess access = policyService.defaultAccessForNewUser();
 
@@ -46,11 +46,10 @@ class DefaultUserAccessPolicyServiceTest {
 	}
 
 	@Test
-    void defaultAccessForNewUser_whenRoleMissing_throwsBusinessException() {
-        when(accessCatalog.findRoleByName("USER")).thenReturn(Optional.empty());
+	void defaultAccessForNewUser_whenRoleMissing_throwsBusinessException() {
+		when(accessCatalog.findRoleByName("USER")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> policyService.defaultAccessForNewUser())
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("Default role 'USER' was not found");
-    }
+		assertThatThrownBy(() -> policyService.defaultAccessForNewUser()).isInstanceOf(BusinessException.class)
+				.hasMessageContaining("Default role 'USER' was not found");
+	}
 }
