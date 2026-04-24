@@ -1,5 +1,6 @@
 package com.dossantosh.springfirstmodulith.security.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class AuthControllerTest {
 
+	private final ObjectMapper objectMapper = new ObjectMapper();
 	private final CurrentSessionDataViewProvider currentSessionDataViewProvider = new CurrentSessionDataViewProvider();
 	private final AuthController controller = new AuthController(currentSessionDataViewProvider);
 
@@ -50,6 +52,23 @@ class AuthControllerTest {
 		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
 		assertThat(body.capabilities().users()).isEqualTo(new FeatureCapabilityResponse(false, false, false));
 		assertThat(body.capabilities().perfumes()).isEqualTo(new FeatureCapabilityResponse(true, true, true));
+	}
+
+	@Test
+	void me_serializesCapabilitiesWithoutExposingAuthorities() {
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
+				List.of(new SimpleGrantedAuthority("MODULE_USERS"), new SimpleGrantedAuthority("SUBMODULE_READUSERS")));
+
+		var response = controller.me(authentication, new MockHttpSession());
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		var json = objectMapper.valueToTree(response.getBody());
+		assertThat(json.has("authorities")).isFalse();
+		assertThat(json.path("username").asText()).isEqualTo("john");
+		assertThat(json.path("capabilities").path("users").path("access").asBoolean()).isTrue();
+		assertThat(json.path("capabilities").path("users").path("read").asBoolean()).isTrue();
+		assertThat(json.path("capabilities").path("users").path("write").asBoolean()).isFalse();
 	}
 
 	@Test
