@@ -46,9 +46,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			            WHERE um.id_user = u.id_user
 			        ) AS modules,
 			        (
-			            SELECT array_agg(CONCAT(m2.name, '_', s.name))
+			            SELECT array_agg(s.name)
 			            FROM submodules s
-			            JOIN modules m2 ON m2.id_module = s.id_module
 			            JOIN users_submodules us ON s.id_submodule = us.id_submodule
 			            WHERE us.id_user = u.id_user
 			        ) AS submodules
