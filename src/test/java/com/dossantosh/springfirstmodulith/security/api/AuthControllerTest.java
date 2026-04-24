@@ -90,6 +90,20 @@ class AuthControllerTest {
 	}
 
 	@Test
+	void me_doesNotGrantSubmoduleCapabilitiesWithoutModuleAccess() {
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
+				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.SUBMODULE_READ_USERS)));
+
+		var response = controller.me(authentication, new MockHttpSession());
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isInstanceOf(AuthSessionResponse.class);
+
+		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
+		assertThat(body.capabilities().users()).isEqualTo(new FeatureCapabilityResponse(false, false, false));
+	}
+
+	@Test
 	void me_returnsUnauthorizedWhenAuthenticationIsMissing() {
 		var response = controller.me(null, new MockHttpSession());
 
