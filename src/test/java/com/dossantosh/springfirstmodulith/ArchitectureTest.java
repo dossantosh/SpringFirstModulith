@@ -30,6 +30,7 @@ class ArchitectureTest {
 				.doNotHaveSimpleName("package-info").should()
 				.resideInAnyPackage(BASE_PACKAGE + ".auth..", BASE_PACKAGE + ".core..", BASE_PACKAGE + ".perfumes..",
 						BASE_PACKAGE + ".security..", BASE_PACKAGE + ".users..")
+				.because("production code should live inside a declared modulith module").check(IMPORTED_CLASSES);
 	}
 
 	@Test
