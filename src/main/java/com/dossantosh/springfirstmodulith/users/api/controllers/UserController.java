@@ -19,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@PreAuthorize("hasAuthority('MODULE_USERS')")
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -34,6 +33,7 @@ public class UserController {
 		this.userQueryService = userQueryService;
 	}
 
+	@PreAuthorize("@permissions.canReadUsers(authentication)")
 	@GetMapping
 	public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(@RequestParam(required = false) Long id,
 			@RequestParam(required = false) String username, @RequestParam(required = false) String email,
@@ -58,12 +58,14 @@ public class UserController {
 		return ResponseEntity.ok(users);
 	}
 
+	@PreAuthorize("@permissions.canReadUsers(authentication)")
 	@GetMapping("/{id}")
 	public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
 
 		return ResponseEntity.ok(userQueryService.getUserDetails(id));
 	}
 
+	@PreAuthorize("@permissions.canWriteUsers(authentication)")
 	@PostMapping
 	public ResponseEntity<UserDetailsView> createUser(@Valid @RequestBody CreateUserRequest request) {
 		User user = new User(request.username(), request.email(), request.password(), request.isAdmin());
@@ -76,6 +78,7 @@ public class UserController {
 		return ResponseEntity.status(201).body(userQueryService.getUserDetails(created.id()));
 	}
 
+	@PreAuthorize("@permissions.canWriteUsers(authentication)")
 	@PutMapping("/{id}")
 	public ResponseEntity<UserDetailsView> updateUser(@PathVariable Long id,
 			@Valid @RequestBody UpdateUserRequest request) {
@@ -87,6 +90,7 @@ public class UserController {
 		return ResponseEntity.ok(userQueryService.getUserDetails(updated.id()));
 	}
 
+	@PreAuthorize("@permissions.canWriteUsers(authentication)")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
 		userCommandService.deleteById(id);

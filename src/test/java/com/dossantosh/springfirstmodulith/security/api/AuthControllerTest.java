@@ -1,5 +1,6 @@
 package com.dossantosh.springfirstmodulith.security.api;
 
+import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,8 @@ class AuthControllerTest {
 	@Test
 	void me_returnsUsernameDataSourceAndCapabilitiesFromSession() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
-				List.of(new SimpleGrantedAuthority("MODULE_USERS"), new SimpleGrantedAuthority("SUBMODULE_READUSERS")));
+				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.MODULE_USERS),
+						new SimpleGrantedAuthority(SecurityAuthorityNames.SUBMODULE_READ_USERS)));
 		MockHttpSession session = new MockHttpSession();
 		currentSessionDataViewProvider.storeCurrentDataView(session, "historic");
 
@@ -40,9 +42,9 @@ class AuthControllerTest {
 	@Test
 	void me_returnsPerfumeCapabilitiesDerivedFromAuthorities() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
-				List.of(new SimpleGrantedAuthority("MODULE_PERFUMES"),
-						new SimpleGrantedAuthority("SUBMODULE_READPERFUMES"),
-						new SimpleGrantedAuthority("SUBMODULE_WRITEPERFUMES")));
+				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.MODULE_PERFUMES),
+						new SimpleGrantedAuthority(SecurityAuthorityNames.SUBMODULE_READ_PERFUMES),
+						new SimpleGrantedAuthority(SecurityAuthorityNames.SUBMODULE_WRITE_PERFUMES)));
 
 		var response = controller.me(authentication, new MockHttpSession());
 
@@ -57,7 +59,8 @@ class AuthControllerTest {
 	@Test
 	void me_serializesCapabilitiesWithoutExposingAuthorities() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
-				List.of(new SimpleGrantedAuthority("MODULE_USERS"), new SimpleGrantedAuthority("SUBMODULE_READUSERS")));
+				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.MODULE_USERS),
+						new SimpleGrantedAuthority(SecurityAuthorityNames.SUBMODULE_READ_USERS)));
 
 		var response = controller.me(authentication, new MockHttpSession());
 
@@ -74,7 +77,7 @@ class AuthControllerTest {
 	@Test
 	void me_defaultsToProdWhenSessionDoesNotContainDataSource() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
-				List.of(new SimpleGrantedAuthority("MODULE_USERS")));
+				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.MODULE_USERS)));
 		MockHttpSession session = new MockHttpSession();
 
 		var response = controller.me(authentication, session);
@@ -84,6 +87,20 @@ class AuthControllerTest {
 
 		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
 		assertThat(body.dataSource()).isEqualTo("prod");
+	}
+
+	@Test
+	void me_doesNotGrantSubmoduleCapabilitiesWithoutModuleAccess() {
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
+				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.SUBMODULE_READ_USERS)));
+
+		var response = controller.me(authentication, new MockHttpSession());
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isInstanceOf(AuthSessionResponse.class);
+
+		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
+		assertThat(body.capabilities().users()).isEqualTo(new FeatureCapabilityResponse(false, false, false));
 	}
 
 	@Test

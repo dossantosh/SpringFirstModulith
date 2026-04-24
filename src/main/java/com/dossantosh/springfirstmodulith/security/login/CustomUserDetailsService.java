@@ -1,5 +1,6 @@
 package com.dossantosh.springfirstmodulith.security.login;
 
+import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
 import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthQuery;
 import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthView;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,15 +29,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 		var authorities = new ArrayList<SimpleGrantedAuthority>();
 
 		for (String role : user.roles()) {
-			authorities.add(new SimpleGrantedAuthority("ROLE_" + normalize(role)));
+			authorities.add(new SimpleGrantedAuthority(SecurityAuthorityNames.role(role)));
 		}
 
 		for (String module : user.modules()) {
-			authorities.add(new SimpleGrantedAuthority("MODULE_" + normalize(module)));
+			authorities.add(new SimpleGrantedAuthority(SecurityAuthorityNames.module(module)));
 		}
 
 		for (String sub : user.submodules()) {
-			authorities.add(new SimpleGrantedAuthority("SUBMODULE_" + normalize(sub)));
+			authorities.add(new SimpleGrantedAuthority(SecurityAuthorityNames.submodule(sub)));
 		}
 
 		CustomUserDetails userDetails = new CustomUserDetails();
@@ -49,10 +50,5 @@ public class CustomUserDetailsService implements UserDetailsService {
 		userDetails.setAuthorities(List.copyOf(authorities));
 
 		return userDetails;
-	}
-
-	private static String normalize(String value) {
-
-		return value == null ? "" : value.trim().toUpperCase().replace(' ', '_');
 	}
 }

@@ -68,7 +68,7 @@ class UserRepositoryTest {
 
 		assertThat(p.getModules()).containsExactlyInAnyOrder("USERS", "BILLING");
 
-		assertThat(p.getSubmodules()).containsExactlyInAnyOrder("USERS_CREATE", "USERS_READ");
+		assertThat(p.getSubmodules()).containsExactlyInAnyOrder("CREATE", "READ");
 	}
 
 	@Test

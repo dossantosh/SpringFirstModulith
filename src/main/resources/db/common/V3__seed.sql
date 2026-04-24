@@ -5,27 +5,27 @@ VALUES ('ADMIN'),
 
 
 INSERT INTO modules (name)
-VALUES ('Users'),
-       ('Perfumes') ON CONFLICT (name) DO NOTHING;
+VALUES ('USERS'),
+       ('PERFUMES') ON CONFLICT (name) DO NOTHING;
 
 
 
 INSERT INTO submodules (name, id_module)
-SELECT 'ReadUsers', id_module
+SELECT 'READUSERS', id_module
 FROM modules
-WHERE name = 'Users'
+WHERE name = 'USERS'
 UNION ALL
-SELECT 'WriteUsers', id_module
+SELECT 'WRITEUSERS', id_module
 FROM modules
-WHERE name = 'Users'
+WHERE name = 'USERS'
 UNION ALL
-SELECT 'ReadPerfumes', id_module
+SELECT 'READPERFUMES', id_module
 FROM modules
-WHERE name = 'Perfumes'
+WHERE name = 'PERFUMES'
 UNION ALL
-SELECT 'WritePerfumes', id_module
+SELECT 'WRITEPERFUMES', id_module
 FROM modules
-WHERE name = 'Perfumes' ON CONFLICT (name, id_module) DO NOTHING;
+WHERE name = 'PERFUMES' ON CONFLICT (name, id_module) DO NOTHING;
 
 
 
@@ -54,7 +54,7 @@ FROM modules
 UNION ALL
 SELECT 2, id_module
 FROM modules
-WHERE name = 'Users' ON CONFLICT (id_user, id_module) DO NOTHING;
+WHERE name = 'USERS' ON CONFLICT (id_user, id_module) DO NOTHING;
 
 
 
@@ -64,7 +64,7 @@ FROM submodules
 UNION ALL
 SELECT 2, id_submodule
 FROM submodules
-WHERE name = 'ReadUsers' ON CONFLICT (id_user, id_submodule) DO NOTHING;
+WHERE name = 'READUSERS' ON CONFLICT (id_user, id_submodule) DO NOTHING;
 
 
 
