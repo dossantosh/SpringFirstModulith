@@ -1,9 +1,7 @@
-package com.dossantosh.springfirstmodulith.users;
+package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
 import com.dossantosh.springfirstmodulith.users.application.ports.out.UserCommandPort;
-import com.dossantosh.springfirstmodulith.users.application.services.DefaultUserAccessPolicyService;
-import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
 import com.dossantosh.springfirstmodulith.users.domain.*;
 import com.dossantosh.springfirstmodulith.users.domain.ports.UserUniquenessPolicy;
 import jakarta.persistence.EntityNotFoundException;

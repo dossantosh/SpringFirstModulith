@@ -1,8 +1,7 @@
-package com.dossantosh.springfirstmodulith.users;
+package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
 import com.dossantosh.springfirstmodulith.users.application.ports.out.UserAccessLookupPort;
-import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
 import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.Submodules;

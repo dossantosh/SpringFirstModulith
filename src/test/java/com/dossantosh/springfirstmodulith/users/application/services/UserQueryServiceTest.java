@@ -1,9 +1,8 @@
-package com.dossantosh.springfirstmodulith.users;
+package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.application.ports.out.UserQueryPort;
-import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
 import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

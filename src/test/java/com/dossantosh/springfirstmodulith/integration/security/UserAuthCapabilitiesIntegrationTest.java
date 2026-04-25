@@ -1,5 +1,6 @@
-package com.dossantosh.springfirstmodulith.users.infrastructure.adapters;
+package com.dossantosh.springfirstmodulith.integration.security;
 
+import com.dossantosh.springfirstmodulith.SpringfirstmodulithApplication;
 import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
 import com.dossantosh.springfirstmodulith.security.api.AuthController;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
@@ -11,20 +12,24 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@Import({JpaUserAdapter.class, CustomUserDetailsService.class, CurrentSessionDataViewProvider.class,
-		AuthController.class})
-@TestPropertySource(properties = {"spring.datasource.url=jdbc:tc:postgresql:16-alpine:///testdb",
+@ContextConfiguration(classes = SpringfirstmodulithApplication.class)
+@Import({UserAuthCapabilitiesIntegrationTest.TestConfig.class, CustomUserDetailsService.class,
+		CurrentSessionDataViewProvider.class, AuthController.class})
+@TestPropertySource(properties = {"spring.datasource.url=jdbc:tc:postgresql:17-alpine:///testdb",
 		"spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver",
 		"spring.jpa.hibernate.ddl-auto=create-drop"})
 class UserAuthCapabilitiesIntegrationTest {
@@ -39,6 +44,11 @@ class UserAuthCapabilitiesIntegrationTest {
 
 	@PersistenceContext
 	private EntityManager em;
+
+	@TestConfiguration
+	@ComponentScan(basePackages = "com.dossantosh.springfirstmodulith.users.infrastructure.adapters")
+	static class TestConfig {
+	}
 
 	@AfterEach
 	void tearDown() {

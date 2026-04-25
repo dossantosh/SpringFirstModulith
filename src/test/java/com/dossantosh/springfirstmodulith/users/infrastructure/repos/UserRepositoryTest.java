@@ -1,8 +1,7 @@
-package com.dossantosh.springfirstmodulith.users;
+package com.dossantosh.springfirstmodulith.users.infrastructure.repos;
 
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
-import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@TestPropertySource(properties = {"spring.datasource.url=jdbc:tc:postgresql:16-alpine:///testdb",
+@TestPropertySource(properties = {"spring.datasource.url=jdbc:tc:postgresql:17-alpine:///testdb",
 		"spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver",
 		"spring.jpa.hibernate.ddl-auto=create-drop"})
 class UserRepositoryTest {

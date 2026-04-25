@@ -1,0 +1,25 @@
+spring:
+  session:
+    jdbc:
+      initialize-schema: always
+
+app:
+  datasource:
+    prod:
+      url: "jdbc:tc:postgresql:17-alpine:///springfirstmodulith_test"
+      driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+      username: test
+      password: test
+    historic:
+      url: "jdbc:tc:postgresql:17-alpine:///springfirstmodulith_test_historic"
+      driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+      username: test
+      password: test
+    session:
+      url: "jdbc:tc:postgresql:17-alpine:///springfirstmodulith_test_session"
+      driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+      username: test
+      password: test
+
+server:
+  port: 0

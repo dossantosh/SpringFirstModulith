@@ -1,10 +1,9 @@
-package com.dossantosh.springfirstmodulith.users;
+package com.dossantosh.springfirstmodulith.users.api.controllers;
 
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.security.Permissions;
 import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
-import com.dossantosh.springfirstmodulith.users.api.controllers.UserController;
 import com.dossantosh.springfirstmodulith.users.api.requests.CreateUserRequest;
 import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRequest;
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;

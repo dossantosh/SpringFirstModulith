@@ -1,7 +1,6 @@
-package com.dossantosh.springfirstmodulith.users;
+package com.dossantosh.springfirstmodulith.users.api.controllers;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.GlobalExceptionHandler;
-import com.dossantosh.springfirstmodulith.users.api.controllers.UserController;
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
