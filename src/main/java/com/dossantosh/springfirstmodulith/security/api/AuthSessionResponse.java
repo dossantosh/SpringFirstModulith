@@ -1,4 +1,7 @@
 package com.dossantosh.springfirstmodulith.security.api;
 
-record AuthSessionResponse(String username, String dataSource, AuthCapabilitiesResponse capabilities) {
+import java.util.List;
+
+record AuthSessionResponse(Long userId, String username, String dataSource, List<String> roles, List<String> scopes,
+		AuthCapabilitiesResponse capabilities) {
 }

@@ -552,7 +552,33 @@ docker compose down -v
 - Session-based authentication (no JWT)
 - Cookies configured as `HttpOnly`, `Secure`, `SameSite`
 - CSRF enabled for browser endpoints
-- Authorization enforced via roles, modules, and submodules
+- Authorization enforced in the backend. Roles are administrative groups; scopes are granular permissions used by protected actions.
+
+### Authorization Model
+
+- A role groups scopes, for example `ADMIN` can receive every scope and `USER` can receive `user:read`.
+- A scope is a granular business permission using the `resource:action` format, for example `user:read`, `user:create`, `user:update`, `user:delete`.
+- A user can receive scopes from assigned roles and extra direct grants in `user_scope_grants`.
+- Direct grants with `expires_at` in the past are ignored when effective scopes are calculated.
+- Spring `GrantedAuthority` remains the internal mechanism: roles are internal `ROLE_*` authorities, while scopes are plain authorities such as `user:read`.
+- Frontend responses expose stable capabilities and scopes, never raw Spring authorities.
+
+To protect a backend action, require the concrete scope:
+
+```java
+@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_READ + "')")
+@GetMapping("/api/users")
+```
+
+Current-user authorization data is available from:
+
+```http
+GET /api/auth/me
+GET /api/auth/me/capabilities
+GET /api/me/capabilities
+```
+
+The response includes `roles`, effective `scopes`, and `capabilities` derived from those scopes. The frontend may use those capabilities for UX, but the backend remains the source of truth.
 
 ---
 

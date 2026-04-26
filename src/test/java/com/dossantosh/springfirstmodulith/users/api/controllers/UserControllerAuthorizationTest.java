@@ -1,9 +1,10 @@
 package com.dossantosh.springfirstmodulith.users.api.controllers;
 
+import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
+import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.Permissions;
-import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
 import com.dossantosh.springfirstmodulith.users.api.requests.CreateUserRequest;
 import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRequest;
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
@@ -30,7 +31,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@SpringJUnitConfig(classes = {UserController.class, Permissions.class, UserControllerAuthorizationTest.TestConfig.class})
+@SpringJUnitConfig(classes = {UserController.class, Permissions.class, AuthorizationService.class,
+		UserControllerAuthorizationTest.TestConfig.class})
 class UserControllerAuthorizationTest {
 
 	@jakarta.annotation.Resource
@@ -51,7 +53,7 @@ class UserControllerAuthorizationTest {
 	}
 
 	@Test
-	@WithMockUser(authorities = {SecurityAuthorityNames.MODULE_USERS, SecurityAuthorityNames.SUBMODULE_READ_USERS})
+	@WithMockUser(authorities = AuthorizationScopes.USER_READ)
 	void getUsers_whenUserCanReadUsers_returnsUsers() {
 		KeysetPage<UserSummaryView> page = new KeysetPage<>();
 		page.setContent(List.of(new UserSummaryView(1L, "john", "john@example.com", true, false)));
@@ -65,7 +67,7 @@ class UserControllerAuthorizationTest {
 	}
 
 	@Test
-	@WithMockUser(authorities = {SecurityAuthorityNames.MODULE_USERS, SecurityAuthorityNames.SUBMODULE_READ_USERS})
+	@WithMockUser(authorities = AuthorizationScopes.USER_READ)
 	void getUserDetails_whenUserCanReadUsers_returnsDetails() {
 		UserDetailsView details = detailsView(1L);
 		when(userQueryService.getUserDetails(1L)).thenReturn(details);
@@ -77,7 +79,7 @@ class UserControllerAuthorizationTest {
 	}
 
 	@Test
-	@WithMockUser(authorities = {SecurityAuthorityNames.MODULE_USERS})
+	@WithMockUser
 	void getUsers_whenUserCannotReadUsers_isDenied() {
 		assertThatThrownBy(() -> userController.getUsers(null, null, null, null, 25, "NEXT"))
 				.isInstanceOf(AccessDeniedException.class);
@@ -86,7 +88,7 @@ class UserControllerAuthorizationTest {
 	}
 
 	@Test
-	@WithMockUser(authorities = {SecurityAuthorityNames.MODULE_USERS, SecurityAuthorityNames.SUBMODULE_WRITE_USERS})
+	@WithMockUser(authorities = AuthorizationScopes.USER_CREATE)
 	void createUser_whenUserCanWriteUsers_returnsCreatedDetails() {
 		User created = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
 		UserDetailsView details = detailsView(7L);
@@ -94,34 +96,35 @@ class UserControllerAuthorizationTest {
 		when(userCommandService.createUser(any(User.class))).thenReturn(created);
 		when(userQueryService.getUserDetails(7L)).thenReturn(details);
 
-		var response = userController.createUser(new CreateUserRequest("john", "john@example.com", "secretPass1", false,
-				null));
+		var response = userController
+				.createUser(new CreateUserRequest("john", "john@example.com", "secretPass1", false, null));
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isSameAs(details);
 	}
 
 	@Test
-	@WithMockUser(authorities = {SecurityAuthorityNames.MODULE_USERS, SecurityAuthorityNames.SUBMODULE_READ_USERS})
+	@WithMockUser(authorities = AuthorizationScopes.USER_READ)
 	void createUser_whenUserCannotWriteUsers_isDenied() {
-		assertThatThrownBy(() -> userController.createUser(new CreateUserRequest("john", "john@example.com",
-				"secretPass1", false, null))).isInstanceOf(AccessDeniedException.class);
+		assertThatThrownBy(() -> userController
+				.createUser(new CreateUserRequest("john", "john@example.com", "secretPass1", false, null)))
+				.isInstanceOf(AccessDeniedException.class);
 
 		verifyNoInteractions(userCommandService, userAccessResolverService, userQueryService);
 	}
 
 	@Test
-	@WithMockUser(authorities = {SecurityAuthorityNames.MODULE_USERS, SecurityAuthorityNames.SUBMODULE_READ_USERS})
+	@WithMockUser(authorities = AuthorizationScopes.USER_READ)
 	void updateUser_whenUserCannotWriteUsers_isDenied() {
 		assertThatThrownBy(() -> userController.updateUser(7L,
 				new UpdateUserRequest("john", "john@example.com", true, null, false, null)))
-			.isInstanceOf(AccessDeniedException.class);
+				.isInstanceOf(AccessDeniedException.class);
 
 		verifyNoInteractions(userCommandService, userAccessResolverService, userQueryService);
 	}
 
 	@Test
-	@WithMockUser(authorities = {SecurityAuthorityNames.MODULE_USERS, SecurityAuthorityNames.SUBMODULE_READ_USERS})
+	@WithMockUser(authorities = AuthorizationScopes.USER_READ)
 	void deleteUser_whenUserCannotWriteUsers_isDenied() {
 		assertThatThrownBy(() -> userController.deleteUser(7L)).isInstanceOf(AccessDeniedException.class);
 

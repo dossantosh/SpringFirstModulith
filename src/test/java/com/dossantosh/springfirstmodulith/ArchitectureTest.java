@@ -28,8 +28,8 @@ class ArchitectureTest {
 		classes().that().resideInAPackage(BASE_PACKAGE + "..").and()
 				.doNotHaveFullyQualifiedName(SpringfirstmodulithApplication.class.getName()).and()
 				.doNotHaveSimpleName("package-info").should()
-				.resideInAnyPackage(BASE_PACKAGE + ".core..", BASE_PACKAGE + ".perfumes..", BASE_PACKAGE + ".security..",
-						BASE_PACKAGE + ".users..")
+				.resideInAnyPackage(BASE_PACKAGE + ".core..", BASE_PACKAGE + ".perfumes..",
+						BASE_PACKAGE + ".security..", BASE_PACKAGE + ".users..", BASE_PACKAGE + ".authorization..")
 				.because("production code should live inside a declared modulith module").check(IMPORTED_CLASSES);
 	}
 

@@ -40,6 +40,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 			authorities.add(new SimpleGrantedAuthority(SecurityAuthorityNames.submodule(sub)));
 		}
 
+		for (String scope : user.scopes()) {
+			authorities.add(new SimpleGrantedAuthority(scope));
+		}
+
 		CustomUserDetails userDetails = new CustomUserDetails();
 		userDetails.setId(user.id());
 		userDetails.setUsername(user.username());
@@ -47,6 +51,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 		userDetails.setPassword(user.password());
 		userDetails.setEnabled(user.enabled());
 		userDetails.setIsAdmin(user.isAdmin());
+		userDetails.setRoles(user.roles());
+		userDetails.setScopes(user.scopes());
 		userDetails.setAuthorities(List.copyOf(authorities));
 
 		return userDetails;

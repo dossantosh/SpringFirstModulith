@@ -1,5 +1,6 @@
 package com.dossantosh.springfirstmodulith.users.api.controllers;
 
+import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.api.requests.CreateUserRequest;
@@ -33,7 +34,7 @@ public class UserController {
 		this.userQueryService = userQueryService;
 	}
 
-	@PreAuthorize("@permissions.canReadUsers(authentication)")
+	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_READ + "')")
 	@GetMapping
 	public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(@RequestParam(required = false) Long id,
 			@RequestParam(required = false) String username, @RequestParam(required = false) String email,
@@ -58,14 +59,14 @@ public class UserController {
 		return ResponseEntity.ok(users);
 	}
 
-	@PreAuthorize("@permissions.canReadUsers(authentication)")
+	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_READ + "')")
 	@GetMapping("/{id}")
 	public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
 
 		return ResponseEntity.ok(userQueryService.getUserDetails(id));
 	}
 
-	@PreAuthorize("@permissions.canWriteUsers(authentication)")
+	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_CREATE + "')")
 	@PostMapping
 	public ResponseEntity<UserDetailsView> createUser(@Valid @RequestBody CreateUserRequest request) {
 		User user = new User(request.username(), request.email(), request.password(), request.isAdmin());
@@ -78,7 +79,7 @@ public class UserController {
 		return ResponseEntity.status(201).body(userQueryService.getUserDetails(created.id()));
 	}
 
-	@PreAuthorize("@permissions.canWriteUsers(authentication)")
+	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_UPDATE + "')")
 	@PutMapping("/{id}")
 	public ResponseEntity<UserDetailsView> updateUser(@PathVariable Long id,
 			@Valid @RequestBody UpdateUserRequest request) {
@@ -90,7 +91,7 @@ public class UserController {
 		return ResponseEntity.ok(userQueryService.getUserDetails(updated.id()));
 	}
 
-	@PreAuthorize("@permissions.canWriteUsers(authentication)")
+	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_DELETE + "')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
 		userCommandService.deleteById(id);

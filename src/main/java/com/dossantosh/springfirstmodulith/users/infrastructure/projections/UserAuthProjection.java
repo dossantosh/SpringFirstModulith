@@ -20,4 +20,6 @@ public interface UserAuthProjection {
 	List<String> getModules();
 
 	List<String> getSubmodules();
+
+	List<String> getScopes();
 }

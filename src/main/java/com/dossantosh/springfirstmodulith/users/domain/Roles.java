@@ -3,7 +3,10 @@ package com.dossantosh.springfirstmodulith.users.domain;
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
 import jakarta.persistence.*;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
@@ -16,6 +19,10 @@ public class Roles {
 
 	@Column(unique = true, length = 20)
 	private String name;
+
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(name = "role_scopes", joinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"), inverseJoinColumns = @JoinColumn(name = "id_scope", referencedColumnName = "id_scope"))
+	private final Set<Scopes> scopes = new LinkedHashSet<>();
 
 	private Roles(Long id, String name) {
 		this.id = id;
@@ -42,6 +49,10 @@ public class Roles {
 
 	public String name() {
 		return name;
+	}
+
+	public Set<Scopes> scopes() {
+		return Collections.unmodifiableSet(scopes);
 	}
 
 	@Override
