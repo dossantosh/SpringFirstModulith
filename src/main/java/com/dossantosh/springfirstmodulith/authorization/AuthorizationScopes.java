@@ -14,8 +14,14 @@ public final class AuthorizationScopes {
 	public static final String PERFUME_UPDATE = "perfume:update";
 	public static final String PERFUME_DELETE = "perfume:delete";
 
+	public static final String ROLE_READ = "role:read";
+	public static final String ROLE_ASSIGN = "role:assign";
+
+	public static final String SCOPE_READ = "scope:read";
+	public static final String SCOPE_ASSIGN = "scope:assign";
+
 	public static final Set<String> ALL = Set.of(USER_READ, USER_CREATE, USER_UPDATE, USER_DELETE, PERFUME_READ,
-			PERFUME_CREATE, PERFUME_UPDATE, PERFUME_DELETE);
+			PERFUME_CREATE, PERFUME_UPDATE, PERFUME_DELETE, ROLE_READ, ROLE_ASSIGN, SCOPE_READ, SCOPE_ASSIGN);
 
 	private AuthorizationScopes() {
 	}

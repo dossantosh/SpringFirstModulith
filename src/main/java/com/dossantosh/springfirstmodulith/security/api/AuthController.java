@@ -36,17 +36,6 @@ public class AuthController {
 		return ResponseEntity.ok(sessionResponse(authentication, dataSource));
 	}
 
-	@PreAuthorize("isAuthenticated()")
-	@GetMapping("/me/capabilities")
-	public ResponseEntity<?> capabilities(Authentication authentication, HttpSession session) {
-		if (authentication == null || !authentication.isAuthenticated()) {
-			return ResponseEntity.status(401).build();
-		}
-
-		String dataSource = currentDataViewQuery.getCurrentDataView(session);
-		return ResponseEntity.ok(sessionResponse(authentication, dataSource));
-	}
-
 	@GetMapping("/csrf")
 	public CsrfToken csrf(CsrfToken token) {
 		return token;

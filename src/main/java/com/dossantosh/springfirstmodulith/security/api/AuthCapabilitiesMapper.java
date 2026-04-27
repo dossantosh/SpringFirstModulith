@@ -20,12 +20,14 @@ public final class AuthCapabilitiesMapper {
 		boolean canUpdatePerfumes = current.contains(AuthorizationScopes.PERFUME_UPDATE);
 		boolean canDeletePerfumes = current.contains(AuthorizationScopes.PERFUME_DELETE);
 
+		boolean canReadUsers = current.contains(AuthorizationScopes.USER_READ);
+		boolean canReadPerfumes = current.contains(AuthorizationScopes.PERFUME_READ);
+
 		return new AuthCapabilitiesResponse(
-				new FeatureCapabilityResponse(current.contains(AuthorizationScopes.USER_READ),
-						canCreateUsers || canUpdateUsers || canDeleteUsers, canCreateUsers, canUpdateUsers,
-						canDeleteUsers),
-				new FeatureCapabilityResponse(current.contains(AuthorizationScopes.PERFUME_READ),
-						canCreatePerfumes || canUpdatePerfumes || canDeletePerfumes, canCreatePerfumes,
-						canUpdatePerfumes, canDeletePerfumes));
+				new FeatureCapabilityResponse(canReadUsers || canCreateUsers || canUpdateUsers || canDeleteUsers,
+						canReadUsers, canCreateUsers, canUpdateUsers, canDeleteUsers),
+				new FeatureCapabilityResponse(
+						canReadPerfumes || canCreatePerfumes || canUpdatePerfumes || canDeletePerfumes, canReadPerfumes,
+						canCreatePerfumes, canUpdatePerfumes, canDeletePerfumes));
 	}
 }

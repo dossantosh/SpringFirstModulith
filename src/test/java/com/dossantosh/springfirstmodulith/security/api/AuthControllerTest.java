@@ -41,7 +41,7 @@ class AuthControllerTest {
 		assertThat(body.roles()).containsExactly("USER");
 		assertThat(body.scopes()).containsExactly(AuthorizationScopes.USER_READ);
 		assertThat(body.capabilities().users())
-				.isEqualTo(new FeatureCapabilityResponse(true, false, false, false, false));
+				.isEqualTo(new FeatureCapabilityResponse(true, true, false, false, false));
 		assertThat(body.capabilities().perfumes())
 				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
 	}
@@ -79,9 +79,10 @@ class AuthControllerTest {
 		assertThat(json.has("authorities")).isFalse();
 		assertThat(json.path("username").asText()).isEqualTo("john");
 		assertThat(json.path("scopes").get(0).asText()).isEqualTo(AuthorizationScopes.USER_READ);
-		assertThat(json.path("capabilities").path("users").path("access").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("users").path("read").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("users").path("write").asBoolean()).isFalse();
+		assertThat(json.path("capabilities").path("users").has("access")).isFalse();
+		assertThat(json.path("capabilities").path("users").has("read")).isFalse();
+		assertThat(json.path("capabilities").path("users").has("write")).isFalse();
+		assertThat(json.path("capabilities").path("users").path("canAccess").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("users").path("canRead").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("users").path("canCreate").asBoolean()).isFalse();
 	}

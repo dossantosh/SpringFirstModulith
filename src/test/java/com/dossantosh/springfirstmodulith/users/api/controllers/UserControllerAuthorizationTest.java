@@ -7,12 +7,17 @@ import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.Permissions;
 import com.dossantosh.springfirstmodulith.users.api.requests.CreateUserRequest;
 import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRequest;
+import com.dossantosh.springfirstmodulith.users.api.requests.UserAccessRequest;
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
 import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
 import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
+import com.dossantosh.springfirstmodulith.users.domain.Modules;
+import com.dossantosh.springfirstmodulith.users.domain.Roles;
+import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Bean;
@@ -89,7 +94,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.USER_CREATE)
-	void createUser_whenUserCanWriteUsers_returnsCreatedDetails() {
+	void createUser_withoutAccessChangeWhenUserCanCreateUsers_returnsCreatedDetails() {
 		User created = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
 		UserDetailsView details = detailsView(7L);
 
@@ -101,6 +106,32 @@ class UserControllerAuthorizationTest {
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		assertThat(response.getBody()).isSameAs(details);
+	}
+
+	@Test
+	@WithMockUser(authorities = AuthorizationScopes.USER_CREATE)
+	void createUser_withAccessChangeWhenUserCannotAssignRoles_isDenied() {
+		assertThatThrownBy(() -> userController.createUser(createRequestWithAccess()))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verifyNoInteractions(userCommandService, userAccessResolverService, userQueryService);
+	}
+
+	@Test
+	@WithMockUser(authorities = {AuthorizationScopes.USER_CREATE, AuthorizationScopes.ROLE_ASSIGN})
+	void createUser_withAccessChangeWhenUserCanAssignRoles_returnsCreatedDetails() {
+		User created = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
+		UserDetailsView details = detailsView(7L);
+
+		when(userAccessResolverService.resolve(List.of(1L), List.of(2L), List.of(3L))).thenReturn(userAccess());
+		when(userCommandService.createUser(any(User.class))).thenReturn(created);
+		when(userQueryService.getUserDetails(7L)).thenReturn(details);
+
+		var response = userController.createUser(createRequestWithAccess());
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		assertThat(response.getBody()).isSameAs(details);
+		verify(userAccessResolverService).resolve(List.of(1L), List.of(2L), List.of(3L));
 	}
 
 	@Test
@@ -124,6 +155,34 @@ class UserControllerAuthorizationTest {
 	}
 
 	@Test
+	@WithMockUser(authorities = AuthorizationScopes.USER_UPDATE)
+	void updateUser_withAccessChangeWhenUserCannotAssignRoles_isDenied() {
+		assertThatThrownBy(() -> userController.updateUser(7L,
+				new UpdateUserRequest("john", "john@example.com", true, null, false, accessRequest())))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verifyNoInteractions(userCommandService, userAccessResolverService, userQueryService);
+	}
+
+	@Test
+	@WithMockUser(authorities = {AuthorizationScopes.USER_UPDATE, AuthorizationScopes.ROLE_ASSIGN})
+	void updateUser_withAccessChangeWhenUserCanAssignRoles_returnsDetails() {
+		User updated = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
+		UserDetailsView details = detailsView(7L);
+
+		when(userAccessResolverService.resolve(List.of(1L), List.of(2L), List.of(3L))).thenReturn(userAccess());
+		when(userCommandService.modifyUser(eq(7L), any())).thenReturn(updated);
+		when(userQueryService.getUserDetails(7L)).thenReturn(details);
+
+		var response = userController.updateUser(7L,
+				new UpdateUserRequest("john", "john@example.com", true, null, false, accessRequest()));
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isSameAs(details);
+		verify(userAccessResolverService).resolve(List.of(1L), List.of(2L), List.of(3L));
+	}
+
+	@Test
 	@WithMockUser(authorities = AuthorizationScopes.USER_READ)
 	void deleteUser_whenUserCannotWriteUsers_isDenied() {
 		assertThatThrownBy(() -> userController.deleteUser(7L)).isInstanceOf(AccessDeniedException.class);
@@ -133,6 +192,20 @@ class UserControllerAuthorizationTest {
 
 	private UserDetailsView detailsView(Long id) {
 		return new UserDetailsView(id, "john", "john@example.com", true, false, Set.of(), Set.of(), Set.of());
+	}
+
+	private CreateUserRequest createRequestWithAccess() {
+		return new CreateUserRequest("john", "john@example.com", "secretPass1", false, accessRequest());
+	}
+
+	private UserAccessRequest accessRequest() {
+		return new UserAccessRequest(List.of(1L), List.of(2L), List.of(3L));
+	}
+
+	private UserAccess userAccess() {
+		Modules usersModule = Modules.reference(2L, "USERS");
+		return UserAccess.of(Set.of(Roles.reference(1L, "USER")), Set.of(usersModule),
+				Set.of(Submodules.reference(3L, "READUSERS", usersModule)));
 	}
 
 	@Configuration

@@ -2,8 +2,6 @@ package com.dossantosh.springfirstmodulith.security.api;
 
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
-import com.dossantosh.springfirstmodulith.security.session.CurrentDataViewQuery;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -15,23 +13,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/me")
 public class CurrentUserController {
 
-	private final CurrentDataViewQuery currentDataViewQuery;
 	private final AuthorizationService authorizationService;
 
-	public CurrentUserController(CurrentDataViewQuery currentDataViewQuery, AuthorizationService authorizationService) {
-		this.currentDataViewQuery = currentDataViewQuery;
+	public CurrentUserController(AuthorizationService authorizationService) {
 		this.authorizationService = authorizationService;
 	}
 
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/capabilities")
-	public ResponseEntity<?> capabilities(Authentication authentication, HttpSession session) {
+	public ResponseEntity<?> capabilities(Authentication authentication) {
 		if (authentication == null || !authentication.isAuthenticated()) {
 			return ResponseEntity.status(401).build();
 		}
 
-		String dataSource = currentDataViewQuery.getCurrentDataView(session);
-		return ResponseEntity.ok(new AuthSessionResponse(userId(authentication), authentication.getName(), dataSource,
+		return ResponseEntity.ok(new CurrentUserCapabilitiesResponse(userId(authentication), authentication.getName(),
 				authorizationService.roles(authentication), authorizationService.effectiveScopes(authentication),
 				authorizationService.capabilities(authentication)));
 	}

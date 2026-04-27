@@ -31,10 +31,17 @@ public class UserScopeGrant {
 	@Column(name = "expires_at")
 	private OffsetDateTime expiresAt;
 
-	@Column(name = "created_at", nullable = false)
+	@Column(name = "created_at", nullable = false, columnDefinition = "timestamp(6) with time zone default current_timestamp")
 	private OffsetDateTime createdAt;
 
 	protected UserScopeGrant() {
+	}
+
+	@PrePersist
+	void ensureCreatedAt() {
+		if (createdAt == null) {
+			createdAt = OffsetDateTime.now();
+		}
 	}
 
 	public Long id() {

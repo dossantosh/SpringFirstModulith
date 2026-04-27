@@ -34,7 +34,7 @@ public class UserController {
 		this.userQueryService = userQueryService;
 	}
 
-	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_READ + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_READ + "')")
 	@GetMapping
 	public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(@RequestParam(required = false) Long id,
 			@RequestParam(required = false) String username, @RequestParam(required = false) String email,
@@ -59,14 +59,15 @@ public class UserController {
 		return ResponseEntity.ok(users);
 	}
 
-	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_READ + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_READ + "')")
 	@GetMapping("/{id}")
 	public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
 
 		return ResponseEntity.ok(userQueryService.getUserDetails(id));
 	}
 
-	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_CREATE + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_CREATE
+			+ "') && @permissions.canApplyUserAccessChange(authentication, #request.access())")
 	@PostMapping
 	public ResponseEntity<UserDetailsView> createUser(@Valid @RequestBody CreateUserRequest request) {
 		User user = new User(request.username(), request.email(), request.password(), request.isAdmin());
@@ -79,7 +80,8 @@ public class UserController {
 		return ResponseEntity.status(201).body(userQueryService.getUserDetails(created.id()));
 	}
 
-	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_UPDATE + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_UPDATE
+			+ "') && @permissions.canApplyUserAccessChange(authentication, #request.access())")
 	@PutMapping("/{id}")
 	public ResponseEntity<UserDetailsView> updateUser(@PathVariable Long id,
 			@Valid @RequestBody UpdateUserRequest request) {
@@ -91,7 +93,7 @@ public class UserController {
 		return ResponseEntity.ok(userQueryService.getUserDetails(updated.id()));
 	}
 
-	@PreAuthorize("hasAuthority('" + AuthorizationScopes.USER_DELETE + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_DELETE + "')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
 		userCommandService.deleteById(id);

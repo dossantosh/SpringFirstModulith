@@ -27,6 +27,10 @@ public class Permissions {
 				|| hasScope(authentication, AuthorizationScopes.USER_DELETE);
 	}
 
+	public boolean canApplyUserAccessChange(Authentication authentication, Object requestedAccess) {
+		return requestedAccess == null || hasScope(authentication, AuthorizationScopes.ROLE_ASSIGN);
+	}
+
 	public boolean hasScope(Authentication authentication, String scope) {
 		return authorizationService.hasScope(authentication, scope);
 	}
