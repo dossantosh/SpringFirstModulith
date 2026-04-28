@@ -279,11 +279,10 @@ public class User {
 	}
 
 	private void validateAccessStateForCreation() {
-		boolean hasAnyAccess = !roles.isEmpty() || !modules.isEmpty() || !submodules.isEmpty();
-		boolean hasCompleteAccess = !roles.isEmpty() && !modules.isEmpty() && !submodules.isEmpty();
+		boolean hasNavigationMetadata = !modules.isEmpty() || !submodules.isEmpty();
 
-		if (hasAnyAccess && !hasCompleteAccess) {
-			throw new BusinessException("User access must be fully specified or omitted during creation");
+		if (hasNavigationMetadata && roles.isEmpty()) {
+			throw new BusinessException("Navigation metadata cannot be assigned without at least one role");
 		}
 	}
 

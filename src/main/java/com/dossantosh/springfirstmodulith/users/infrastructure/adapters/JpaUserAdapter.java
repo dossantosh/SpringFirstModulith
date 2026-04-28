@@ -80,7 +80,6 @@ class JpaUserAdapter implements UserCommandPort, UserQueryPort, UserUniquenessPo
 		return new UserAuthView(projection.getId(), projection.getUsername(), projection.getEmail(),
 				projection.getPassword(), Boolean.TRUE.equals(projection.getEnabled()),
 				Boolean.TRUE.equals(projection.getIsAdmin()), emptyIfNull(projection.getRoles()),
-				emptyIfNull(projection.getModules()), emptyIfNull(projection.getSubmodules()),
 				emptyIfNull(projection.getScopes()));
 	}
 

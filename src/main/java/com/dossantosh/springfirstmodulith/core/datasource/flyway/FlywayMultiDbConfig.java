@@ -14,7 +14,7 @@ public class FlywayMultiDbConfig {
 	@Bean
 	public Flyway flywayProd(@Qualifier("prodDataSource") DataSource prodDataSource, Environment env) {
 		Flyway flyway = Flyway.configure().dataSource(prodDataSource)
-				.locations("classpath:db/common", "classpath:db/prod").baselineOnMigrate(true).load();
+				.locations("classpath:db/common", "classpath:db/prod").baselineOnMigrate(true).outOfOrder(true).load();
 
 		runFlyway(flyway, env, "prod");
 		return flyway;
@@ -23,7 +23,7 @@ public class FlywayMultiDbConfig {
 	@Bean
 	public Flyway flywayHistoric(@Qualifier("historicDataSource") DataSource historicDataSource, Environment env) {
 		Flyway flyway = Flyway.configure().dataSource(historicDataSource).locations("classpath:db/common")
-				.baselineOnMigrate(true).load();
+				.baselineOnMigrate(true).outOfOrder(true).load();
 
 		runFlyway(flyway, env, "historic");
 		return flyway;

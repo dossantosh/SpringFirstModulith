@@ -28,10 +28,7 @@ public class AuthorizationService {
 		if (authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
 			return userDetails.getRoles();
 		}
-
-		return authentication.getAuthorities().stream().map(granted -> granted.getAuthority())
-				.filter(authority -> authority.startsWith(SecurityAuthorityNames.ROLE_PREFIX))
-				.map(authority -> authority.substring(SecurityAuthorityNames.ROLE_PREFIX.length())).sorted().toList();
+		return List.of();
 	}
 
 	public List<String> effectiveScopes(Authentication authentication) {

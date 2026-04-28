@@ -57,12 +57,10 @@ class UserControllerTest {
 
 	@Test
 	void createUser_whenValidRequest_returnsCreatedDetails() throws Exception {
-		Modules users = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules readUsers = submodule(30L, "ReadUsers", users);
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(readUsers));
+		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(), Set.of());
 
-		when(userAccessResolverService.resolve(List.of(20L), List.of(10L), List.of(30L))).thenReturn(access);
+		when(userAccessResolverService.resolve(List.of(20L), null, null)).thenReturn(access);
 		when(userCommandService.createUser(any(User.class)))
 				.thenReturn(User.rehydrate(99L, "john", "john@x.com", true, "hashed", false, access));
 		when(userQueryService.getUserDetails(99L)).thenReturn(detailsView(99L, "john", "john@x.com"));
@@ -74,9 +72,7 @@ class UserControllerTest {
 				  "password":"secretPass1",
 				  "isAdmin":false,
 				  "access":{
-				    "roleIds":[20],
-				    "moduleIds":[10],
-				    "submoduleIds":[30]
+				    "roleIds":[20]
 				  }
 				}
 				""";
@@ -134,7 +130,7 @@ class UserControllerTest {
 
 	private UserDetailsView detailsView(Long id, String username, String email) {
 		return new UserDetailsView(id, username, email, true, false, Set.of(new RoleView(20L, "USER")),
-				Set.of(new ModuleView(10L, "Users")), Set.of(new SubmoduleView(30L, "ReadUsers")));
+				Set.of(new ModuleView(10L, "Users")), Set.of(new SubmoduleView(30L, "SEARCH_USERS")));
 	}
 
 	private static Roles role(Long id, String name) {

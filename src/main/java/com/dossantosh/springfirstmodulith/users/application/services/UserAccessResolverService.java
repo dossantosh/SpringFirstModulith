@@ -22,9 +22,9 @@ public class UserAccessResolverService {
 	}
 
 	public UserAccess resolve(List<Long> roleIds, List<Long> moduleIds, List<Long> submoduleIds) {
-		Set<Long> distinctRoleIds = toDistinctIds(roleIds, "roleIds");
-		Set<Long> distinctModuleIds = toDistinctIds(moduleIds, "moduleIds");
-		Set<Long> distinctSubmoduleIds = toDistinctIds(submoduleIds, "submoduleIds");
+		Set<Long> distinctRoleIds = toRequiredDistinctIds(roleIds, "roleIds");
+		Set<Long> distinctModuleIds = toOptionalDistinctIds(moduleIds, "moduleIds");
+		Set<Long> distinctSubmoduleIds = toOptionalDistinctIds(submoduleIds, "submoduleIds");
 
 		Set<Roles> roles = new LinkedHashSet<>(userAccessLookupPort.findRolesById(List.copyOf(distinctRoleIds)));
 		Set<Modules> modules = new LinkedHashSet<>(
@@ -45,9 +45,17 @@ public class UserAccessResolverService {
 		return UserAccess.of(roles, modules, submodules);
 	}
 
-	private Set<Long> toDistinctIds(List<Long> ids, String fieldName) {
+	private Set<Long> toRequiredDistinctIds(List<Long> ids, String fieldName) {
 		if (ids == null || ids.isEmpty()) {
 			throw new BusinessException(fieldName + " cannot be empty");
+		}
+
+		return toOptionalDistinctIds(ids, fieldName);
+	}
+
+	private Set<Long> toOptionalDistinctIds(List<Long> ids, String fieldName) {
+		if (ids == null || ids.isEmpty()) {
+			return Set.of();
 		}
 
 		LinkedHashSet<Long> normalized = new LinkedHashSet<>();

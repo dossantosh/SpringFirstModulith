@@ -17,12 +17,6 @@ public record UserAccess(Set<Roles> roles, Set<Modules> modules, Set<Submodules>
 		if (roles.isEmpty()) {
 			throw new BusinessException("A user must have at least one role");
 		}
-		if (modules.isEmpty()) {
-			throw new BusinessException("A user must have at least one module");
-		}
-		if (submodules.isEmpty()) {
-			throw new BusinessException("A user must have at least one submodule");
-		}
 
 		validateEverySubmoduleBelongsToAnAssignedModule(modules, submodules);
 	}

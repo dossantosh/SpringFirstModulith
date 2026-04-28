@@ -54,11 +54,6 @@ class UserRepositoryTest {
 		linkUserModule(userId, modUsers);
 		linkUserModule(userId, modBilling);
 
-		long subCreate = insertSubmodule("CREATE", modUsers);
-		long subRead = insertSubmodule("READ", modUsers);
-		linkUserSubmodule(userId, subCreate);
-		linkUserSubmodule(userId, subRead);
-
 		em.flush();
 		em.clear();
 
@@ -72,10 +67,6 @@ class UserRepositoryTest {
 		assertThat(p.getIsAdmin()).isFalse();
 
 		assertThat(p.getRoles()).containsExactlyInAnyOrder("DOCTOR", "MEDIC");
-
-		assertThat(p.getModules()).containsExactlyInAnyOrder("USERS", "BILLING");
-
-		assertThat(p.getSubmodules()).containsExactlyInAnyOrder("CREATE", "READ");
 		assertThat(p.getScopes()).containsExactly("report:read", AuthorizationScopes.USER_CREATE,
 				AuthorizationScopes.USER_READ);
 	}
@@ -107,8 +98,6 @@ class UserRepositoryTest {
 		assertThat(p.getId()).isEqualTo(userId);
 
 		assertThat(p.getRoles()).isNull();
-		assertThat(p.getModules()).isNull();
-		assertThat(p.getSubmodules()).isNull();
 		assertThat(p.getScopes()).isNull();
 
 	}
@@ -185,18 +174,4 @@ class UserRepositoryTest {
 				""").setParameter("u", userId).setParameter("m", moduleId).executeUpdate();
 	}
 
-	private long insertSubmodule(String name, long moduleId) {
-		return ((Number) em.createNativeQuery("""
-				INSERT INTO submodules (name, id_module)
-				VALUES (:n, :m)
-				RETURNING id_submodule
-				""").setParameter("n", name).setParameter("m", moduleId).getSingleResult()).longValue();
-	}
-
-	private void linkUserSubmodule(long userId, long submoduleId) {
-		em.createNativeQuery("""
-				INSERT INTO users_submodules (id_user, id_submodule)
-				VALUES (:u, :s)
-				""").setParameter("u", userId).setParameter("s", submoduleId).executeUpdate();
-	}
 }

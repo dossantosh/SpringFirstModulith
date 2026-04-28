@@ -40,18 +40,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			            WHERE ur.id_user = u.id_user
 			        ) AS roles,
 			        (
-			            SELECT array_agg(m.name)
-			            FROM modules m
-			            JOIN users_modules um ON m.id_module = um.id_module
-			            WHERE um.id_user = u.id_user
-			        ) AS modules,
-			        (
-			            SELECT array_agg(s.name)
-			            FROM submodules s
-			            JOIN users_submodules us ON s.id_submodule = us.id_submodule
-			            WHERE us.id_user = u.id_user
-			        ) AS submodules,
-			        (
 			            SELECT array_agg(scope_name ORDER BY scope_name)
 			            FROM (
 			                SELECT DISTINCT s.name AS scope_name

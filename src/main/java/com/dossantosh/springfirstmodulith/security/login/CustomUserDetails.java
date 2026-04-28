@@ -99,8 +99,8 @@ public class CustomUserDetails implements UserDetails {
 		this.scopes = scopes == null ? List.of() : List.copyOf(scopes);
 	}
 
-	public void setAuthorities(List<GrantedAuthority> authorities) {
-		this.authorities = authorities;
+	public void setAuthorities(List<? extends GrantedAuthority> authorities) {
+		this.authorities = authorities == null ? List.of() : List.copyOf(authorities);
 	}
 
 	@Override

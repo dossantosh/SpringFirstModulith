@@ -2,7 +2,7 @@ package com.dossantosh.springfirstmodulith.security.api;
 
 import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
-import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
+import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
 import org.junit.jupiter.api.Test;
@@ -24,9 +24,10 @@ class AuthControllerTest {
 
 	@Test
 	void me_returnsUsernameDataSourceAndCapabilitiesFromSession() {
-		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
-				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.ROLE_USER),
-						new SimpleGrantedAuthority(AuthorizationScopes.USER_READ)));
+		CustomUserDetails userDetails = customUserDetails("john", List.of("USER"),
+				List.of(AuthorizationScopes.USER_READ));
+		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, "n/a",
+				userDetails.getAuthorities());
 		MockHttpSession session = new MockHttpSession();
 		currentSessionDataViewProvider.storeCurrentDataView(session, "historic");
 
@@ -105,7 +106,7 @@ class AuthControllerTest {
 	@Test
 	void me_doesNotGrantCapabilitiesFromLegacyAuthoritiesWithoutScopes() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
-				List.of(new SimpleGrantedAuthority(SecurityAuthorityNames.SUBMODULE_READ_USERS)));
+				List.of(new SimpleGrantedAuthority("SUBMODULE_SEARCH_USERS")));
 
 		var response = controller.me(authentication, new MockHttpSession());
 
@@ -123,5 +124,15 @@ class AuthControllerTest {
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 		assertThat(response.getBody()).isNull();
+	}
+
+	private CustomUserDetails customUserDetails(String username, List<String> roles, List<String> scopes) {
+		CustomUserDetails userDetails = new CustomUserDetails();
+		userDetails.setUsername(username);
+		userDetails.setEnabled(true);
+		userDetails.setRoles(roles);
+		userDetails.setScopes(scopes);
+		userDetails.setAuthorities(scopes.stream().map(SimpleGrantedAuthority::new).toList());
+		return userDetails;
 	}
 }

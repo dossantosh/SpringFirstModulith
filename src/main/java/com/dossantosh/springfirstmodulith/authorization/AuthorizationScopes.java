@@ -4,15 +4,15 @@ import java.util.Set;
 
 public final class AuthorizationScopes {
 
-	public static final String USER_READ = "user:read";
-	public static final String USER_CREATE = "user:create";
-	public static final String USER_UPDATE = "user:update";
-	public static final String USER_DELETE = "user:delete";
+	public static final String USER_READ = "users:read";
+	public static final String USER_CREATE = "users:create";
+	public static final String USER_UPDATE = "users:update";
+	public static final String USER_DELETE = "users:delete";
 
-	public static final String PERFUME_READ = "perfume:read";
-	public static final String PERFUME_CREATE = "perfume:create";
-	public static final String PERFUME_UPDATE = "perfume:update";
-	public static final String PERFUME_DELETE = "perfume:delete";
+	public static final String PERFUME_READ = "perfumes:read";
+	public static final String PERFUME_CREATE = "perfumes:create";
+	public static final String PERFUME_UPDATE = "perfumes:update";
+	public static final String PERFUME_DELETE = "perfumes:delete";
 
 	public static final String ROLE_READ = "role:read";
 	public static final String ROLE_ASSIGN = "role:assign";
@@ -27,7 +27,6 @@ public final class AuthorizationScopes {
 	}
 
 	public static boolean isScopeAuthority(String authority) {
-		return authority != null && authority.contains(":") && !authority.startsWith("ROLE_")
-				&& !authority.startsWith("MODULE_") && !authority.startsWith("SUBMODULE_");
+		return authority != null && authority.contains(":");
 	}
 }

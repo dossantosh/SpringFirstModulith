@@ -1,6 +1,5 @@
 package com.dossantosh.springfirstmodulith.security.login;
 
-import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
 import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthQuery;
 import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthView;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -26,23 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 		UserAuthView user = userAuthQuery.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException(username));
 
-		var authorities = new ArrayList<SimpleGrantedAuthority>();
-
-		for (String role : user.roles()) {
-			authorities.add(new SimpleGrantedAuthority(SecurityAuthorityNames.role(role)));
-		}
-
-		for (String module : user.modules()) {
-			authorities.add(new SimpleGrantedAuthority(SecurityAuthorityNames.module(module)));
-		}
-
-		for (String sub : user.submodules()) {
-			authorities.add(new SimpleGrantedAuthority(SecurityAuthorityNames.submodule(sub)));
-		}
-
-		for (String scope : user.scopes()) {
-			authorities.add(new SimpleGrantedAuthority(scope));
-		}
+		List<SimpleGrantedAuthority> authorities = user.scopes().stream().map(SimpleGrantedAuthority::new).toList();
 
 		CustomUserDetails userDetails = new CustomUserDetails();
 		userDetails.setId(user.id());

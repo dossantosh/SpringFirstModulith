@@ -17,21 +17,33 @@ class UserDomainTest {
 		Modules users = module(1L, "Users");
 		Modules perfumes = module(2L, "Perfumes");
 		Roles userRole = role(3L, "USER");
-		Submodules writePerfumes = submodule(4L, "WritePerfumes", perfumes);
+		Submodules searchPerfumes = submodule(4L, "SEARCH_PERFUMES", perfumes);
 
 		User user = new User("john", "john@x.com", "secret", false);
 
 		assertThatThrownBy(
-				() -> user.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(users), Set.of(writePerfumes))))
+				() -> user.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(users), Set.of(searchPerfumes))))
 				.isInstanceOf(BusinessException.class).hasMessageContaining("requires its parent module");
+	}
+
+	@Test
+	void replaceAccess_allowsRoleOnlyAccess() {
+		Roles userRole = role(2L, "USER");
+		User user = new User("john", "john@x.com", "secret", false);
+
+		user.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(), Set.of()));
+
+		assertThat(user.roles()).containsExactly(userRole);
+		assertThat(user.modules()).isEmpty();
+		assertThat(user.submodules()).isEmpty();
 	}
 
 	@Test
 	void applyChangesFrom_updatesBehavioralStateInsideAggregate() {
 		Modules users = module(1L, "Users");
 		Roles userRole = role(2L, "USER");
-		Submodules readUsers = submodule(3L, "ReadUsers", users);
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(readUsers));
+		Submodules searchUsers = submodule(3L, "SEARCH_USERS", users);
+		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(searchUsers));
 
 		User existing = new User("john", "john@x.com", "secret", false);
 		existing.replaceAccess(access);
@@ -51,11 +63,11 @@ class UserDomainTest {
 		User user = new User("john", "john@x.com", "secret", false);
 		Modules users = module(1L, "Users");
 		Roles userRole = role(2L, "USER");
-		Submodules readUsers = submodule(3L, "ReadUsers", users);
+		Submodules searchUsers = submodule(3L, "SEARCH_USERS", users);
 
 		assertThat(user.hasNoAccessAssigned()).isTrue();
 
-		user.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(users), Set.of(readUsers)));
+		user.replaceAccess(UserAccess.of(Set.of(userRole), Set.of(users), Set.of(searchUsers)));
 
 		assertThat(user.hasNoAccessAssigned()).isFalse();
 	}
@@ -64,8 +76,8 @@ class UserDomainTest {
 	void applyChangesFrom_whenAccessIsNull_keepsExistingAccess() {
 		Modules users = module(1L, "Users");
 		Roles userRole = role(2L, "USER");
-		Submodules readUsers = submodule(3L, "ReadUsers", users);
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(readUsers));
+		Submodules searchUsers = submodule(3L, "SEARCH_USERS", users);
+		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(searchUsers));
 
 		User existing = new User("john", "john@x.com", "secret", false);
 		existing.replaceAccess(access);
@@ -76,7 +88,7 @@ class UserDomainTest {
 		assertThat(existing.email()).isEqualTo("john+updated@x.com");
 		assertThat(existing.roles()).containsExactly(userRole);
 		assertThat(existing.modules()).containsExactly(users);
-		assertThat(existing.submodules()).containsExactly(readUsers);
+		assertThat(existing.submodules()).containsExactly(searchUsers);
 	}
 
 	@Test

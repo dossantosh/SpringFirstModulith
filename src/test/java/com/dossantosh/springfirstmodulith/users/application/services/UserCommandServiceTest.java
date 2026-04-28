@@ -43,8 +43,8 @@ class UserCommandServiceTest {
 	void modifyUser_whenValidChangesProvided_updatesExistingAggregateAndSaves() {
 		Modules usersModule = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules readUsers = submodule(30L, "ReadUsers", usersModule);
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers));
+		Submodules searchUsers = submodule(30L, "SEARCH_USERS", usersModule);
+		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(searchUsers));
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "hashed", false, access);
 
@@ -66,15 +66,15 @@ class UserCommandServiceTest {
 		assertThat(saved.roles()).extracting(Roles::id, Roles::name).containsExactly(tuple(20L, "USER"));
 		assertThat(saved.modules()).extracting(Modules::id, Modules::name).containsExactly(tuple(10L, "Users"));
 		assertThat(saved.submodules()).extracting(Submodules::id, Submodules::name)
-				.containsExactly(tuple(30L, "ReadUsers"));
+				.containsExactly(tuple(30L, "SEARCH_USERS"));
 	}
 
 	@Test
 	void modifyUser_whenPasswordProvided_encodesBeforeSave() {
 		Modules usersModule = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules readUsers = submodule(30L, "ReadUsers", usersModule);
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers));
+		Submodules searchUsers = submodule(30L, "SEARCH_USERS", usersModule);
+		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(searchUsers));
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "oldhash", false, access);
 		when(userCommandPort.findById(5L)).thenReturn(Optional.of(existingUser));
@@ -99,14 +99,12 @@ class UserCommandServiceTest {
 
 	@Test
 	void createUser_assignsDefaultAccessAndEncodesPassword() {
-		Modules usersModule = module(1L, "Users");
 		Roles userRole = role(2L, "USER");
-		Submodules readUsers = submodule(3L, "ReadUsers", usersModule);
 
 		when(userUniquenessPolicy.usernameExists("john")).thenReturn(false);
 		when(userUniquenessPolicy.emailExists("john@x.com")).thenReturn(false);
 		when(defaultUserAccessPolicyService.defaultAccessForNewUser())
-				.thenReturn(UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(readUsers)));
+				.thenReturn(UserAccess.of(Set.of(userRole), Set.of(), Set.of()));
 		when(passwordEncoder.encode("secretPass1")).thenReturn("encodedPass");
 		when(userCommandPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -121,9 +119,8 @@ class UserCommandServiceTest {
 		assertThat(saved.enabled()).isTrue();
 		assertThat(saved.passwordHash()).isEqualTo("encodedPass");
 		assertThat(saved.roles()).extracting(Roles::id, Roles::name).containsExactly(tuple(2L, "USER"));
-		assertThat(saved.modules()).extracting(Modules::id, Modules::name).containsExactly(tuple(1L, "Users"));
-		assertThat(saved.submodules()).extracting(Submodules::id, Submodules::name)
-				.containsExactly(tuple(3L, "ReadUsers"));
+		assertThat(saved.modules()).isEmpty();
+		assertThat(saved.submodules()).isEmpty();
 	}
 
 	@Test

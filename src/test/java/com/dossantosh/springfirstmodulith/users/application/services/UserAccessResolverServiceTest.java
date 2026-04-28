@@ -31,29 +31,42 @@ class UserAccessResolverServiceTest {
 	void resolve_whenAllIdsExist_returnsUserAccess() {
 		Modules users = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules readUsers = submodule(30L, "ReadUsers", users);
+		Submodules searchUsers = submodule(30L, "SEARCH_USERS", users);
 
 		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of(userRole));
 		when(userAccessLookupPort.findModulesById(List.of(10L))).thenReturn(List.of(users));
-		when(userAccessLookupPort.findSubmodulesById(List.of(30L))).thenReturn(List.of(readUsers));
+		when(userAccessLookupPort.findSubmodulesById(List.of(30L))).thenReturn(List.of(searchUsers));
 
 		UserAccess access = userAccessResolverService.resolve(List.of(20L), List.of(10L), List.of(30L));
 
 		assertThat(access.roles()).containsExactly(userRole);
 		assertThat(access.modules()).containsExactly(users);
-		assertThat(access.submodules()).containsExactly(readUsers);
+		assertThat(access.submodules()).containsExactly(searchUsers);
 	}
 
 	@Test
-    void resolve_whenAnyIdMissing_throwsBusinessException() {
-        when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of());
-        when(userAccessLookupPort.findModulesById(List.of(10L))).thenReturn(List.of(module(10L, "Users")));
-        when(userAccessLookupPort.findSubmodulesById(List.of(30L))).thenReturn(List.of(submodule(30L, "ReadUsers", module(10L, "Users"))));
+	void resolve_whenOnlyRoleIdsProvided_returnsAccessWithoutNavigationMetadata() {
+		Roles userRole = role(20L, "USER");
 
-        assertThatThrownBy(() -> userAccessResolverService.resolve(List.of(20L), List.of(10L), List.of(30L)))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining("roles");
-    }
+		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of(userRole));
+
+		UserAccess access = userAccessResolverService.resolve(List.of(20L), null, List.of());
+
+		assertThat(access.roles()).containsExactly(userRole);
+		assertThat(access.modules()).isEmpty();
+		assertThat(access.submodules()).isEmpty();
+	}
+
+	@Test
+	void resolve_whenAnyIdMissing_throwsBusinessException() {
+		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of());
+		when(userAccessLookupPort.findModulesById(List.of(10L))).thenReturn(List.of(module(10L, "Users")));
+		when(userAccessLookupPort.findSubmodulesById(List.of(30L)))
+				.thenReturn(List.of(submodule(30L, "SEARCH_USERS", module(10L, "Users"))));
+
+		assertThatThrownBy(() -> userAccessResolverService.resolve(List.of(20L), List.of(10L), List.of(30L)))
+				.isInstanceOf(BusinessException.class).hasMessageContaining("roles");
+	}
 
 	private static Roles role(Long id, String name) {
 		return Roles.reference(id, name);

@@ -3,7 +3,6 @@ package com.dossantosh.springfirstmodulith.integration.security;
 import com.dossantosh.springfirstmodulith.SpringfirstmodulithApplication;
 import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
-import com.dossantosh.springfirstmodulith.security.SecurityAuthorityNames;
 import com.dossantosh.springfirstmodulith.security.api.AuthController;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
 import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
@@ -58,15 +57,12 @@ class UserAuthCapabilitiesIntegrationTest {
 	}
 
 	@Test
-	void me_mapsDatabaseAccessCatalogToSemanticCapabilities() {
+	void me_mapsRoleScopesToCapabilitiesWithoutGrantingRoleModuleOrSubmoduleAuthorities() {
 		long userId = insertUser("john", "john@example.com", "hashedpw", true, false);
 		long userRole = insertRole("USER");
 		long usersModule = insertModule("USERS");
 		long perfumesModule = insertModule("PERFUMES");
-		long readUsers = insertSubmodule("READUSERS", usersModule);
-		long writeUsers = insertSubmodule("WRITEUSERS", usersModule);
-		long readPerfumes = insertSubmodule("READPERFUMES", perfumesModule);
-		long writePerfumes = insertSubmodule("WRITEPERFUMES", perfumesModule);
+		long searchUsers = insertSubmodule("SEARCH_USERS", usersModule);
 		long userRead = insertScope(AuthorizationScopes.USER_READ);
 		long userCreate = insertScope(AuthorizationScopes.USER_CREATE);
 		long userUpdate = insertScope(AuthorizationScopes.USER_UPDATE);
@@ -87,10 +83,7 @@ class UserAuthCapabilitiesIntegrationTest {
 		linkRoleScope(userRole, perfumeDelete);
 		linkUserModule(userId, usersModule);
 		linkUserModule(userId, perfumesModule);
-		linkUserSubmodule(userId, readUsers);
-		linkUserSubmodule(userId, writeUsers);
-		linkUserSubmodule(userId, readPerfumes);
-		linkUserSubmodule(userId, writePerfumes);
+		linkUserSubmodule(userId, searchUsers);
 
 		em.flush();
 		em.clear();
@@ -98,12 +91,8 @@ class UserAuthCapabilitiesIntegrationTest {
 		UserDetails userDetails = userDetailsService.loadUserByUsername("john");
 
 		assertThat(userDetails.getAuthorities()).extracting("authority").containsExactlyInAnyOrder(
-				SecurityAuthorityNames.ROLE_USER, SecurityAuthorityNames.MODULE_USERS,
-				SecurityAuthorityNames.MODULE_PERFUMES, SecurityAuthorityNames.SUBMODULE_READ_USERS,
-				SecurityAuthorityNames.SUBMODULE_WRITE_USERS, SecurityAuthorityNames.SUBMODULE_READ_PERFUMES,
-				SecurityAuthorityNames.SUBMODULE_WRITE_PERFUMES, AuthorizationScopes.USER_READ,
-				AuthorizationScopes.USER_CREATE, AuthorizationScopes.USER_UPDATE, AuthorizationScopes.USER_DELETE,
-				AuthorizationScopes.PERFUME_READ, AuthorizationScopes.PERFUME_CREATE,
+				AuthorizationScopes.USER_READ, AuthorizationScopes.USER_CREATE, AuthorizationScopes.USER_UPDATE,
+				AuthorizationScopes.USER_DELETE, AuthorizationScopes.PERFUME_READ, AuthorizationScopes.PERFUME_CREATE,
 				AuthorizationScopes.PERFUME_UPDATE, AuthorizationScopes.PERFUME_DELETE);
 
 		var authentication = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(),
@@ -118,6 +107,7 @@ class UserAuthCapabilitiesIntegrationTest {
 		assertThat(json.has("authorities")).isFalse();
 		assertThat(json.path("scopes").size()).isEqualTo(8);
 		assertThat(json.path("username").asText()).isEqualTo("john");
+		assertThat(json.path("roles").get(0).asText()).isEqualTo("USER");
 		assertThat(json.path("capabilities").path("users").has("access")).isFalse();
 		assertThat(json.path("capabilities").path("users").has("read")).isFalse();
 		assertThat(json.path("capabilities").path("users").has("write")).isFalse();
@@ -134,6 +124,38 @@ class UserAuthCapabilitiesIntegrationTest {
 		assertThat(json.path("capabilities").path("perfumes").path("canCreate").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("perfumes").path("canUpdate").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("perfumes").path("canDelete").asBoolean()).isTrue();
+	}
+
+	@Test
+	void me_doesNotGrantCapabilitiesFromModulesOrSubmodulesWithoutScopes() {
+		long userId = insertUser("metadata-only", "metadata@example.com", "hashedpw", true, false);
+		long userRole = insertRole("USER");
+		long usersModule = insertModule("USERS");
+		long searchUsers = insertSubmodule("SEARCH_USERS", usersModule);
+
+		linkUserRole(userId, userRole);
+		linkUserModule(userId, usersModule);
+		linkUserSubmodule(userId, searchUsers);
+
+		em.flush();
+		em.clear();
+
+		UserDetails userDetails = userDetailsService.loadUserByUsername("metadata-only");
+
+		assertThat(userDetails.getAuthorities()).isEmpty();
+
+		var authentication = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(),
+				userDetails.getAuthorities());
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		var response = authController.me(authentication, new MockHttpSession());
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+		var json = objectMapper.valueToTree(response.getBody());
+		assertThat(json.path("scopes").isEmpty()).isTrue();
+		assertThat(json.path("roles").get(0).asText()).isEqualTo("USER");
+		assertThat(json.path("capabilities").path("users").path("canAccess").asBoolean()).isFalse();
+		assertThat(json.path("capabilities").path("users").path("canRead").asBoolean()).isFalse();
 	}
 
 	private long insertUser(String username, String email, String password, boolean enabled, boolean isAdmin) {
