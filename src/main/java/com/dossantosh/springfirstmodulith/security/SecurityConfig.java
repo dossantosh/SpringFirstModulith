@@ -66,6 +66,8 @@ public class SecurityConfig {
 
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+						.requestMatchers("/v3/api-docs/**").permitAll()
+
 						.requestMatchers("/api/auth/login", "/api/auth/csrf").permitAll()
 
 						.requestMatchers("/api/**").authenticated()

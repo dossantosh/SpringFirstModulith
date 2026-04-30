@@ -15,6 +15,7 @@ import com.dossantosh.springfirstmodulith.users.domain.User;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import com.dossantosh.springfirstmodulith.users.domain.UserChanges;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,7 @@ public class UserController {
 	}
 
 	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_READ + "')")
-	@GetMapping
+	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(@RequestParam(required = false) Long id,
 			@RequestParam(required = false) String username, @RequestParam(required = false) String email,
 			@RequestParam(required = false) Long lastId, @RequestParam(defaultValue = "25") int limit,
