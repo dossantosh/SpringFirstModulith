@@ -42,7 +42,7 @@ class UserDomainTest {
 	void applyChangesFrom_updatesBehavioralStateInsideAggregate() {
 		Modules users = module(1L, "Users");
 		Roles userRole = role(2L, "USER");
-		Submodules searchUsers = submodule(3L, "SEARCH_USERS", users);
+		Submodules searchUsers = submodule(3L, "USERS_SEARCH", users);
 		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(searchUsers));
 
 		User existing = new User("john", "john@x.com", "secret", false);
@@ -63,7 +63,7 @@ class UserDomainTest {
 		User user = new User("john", "john@x.com", "secret", false);
 		Modules users = module(1L, "Users");
 		Roles userRole = role(2L, "USER");
-		Submodules searchUsers = submodule(3L, "SEARCH_USERS", users);
+		Submodules searchUsers = submodule(3L, "USERS_SEARCH", users);
 
 		assertThat(user.hasNoAccessAssigned()).isTrue();
 
@@ -76,7 +76,7 @@ class UserDomainTest {
 	void applyChangesFrom_whenAccessIsNull_keepsExistingAccess() {
 		Modules users = module(1L, "Users");
 		Roles userRole = role(2L, "USER");
-		Submodules searchUsers = submodule(3L, "SEARCH_USERS", users);
+		Submodules searchUsers = submodule(3L, "USERS_SEARCH", users);
 		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(users), Set.of(searchUsers));
 
 		User existing = new User("john", "john@x.com", "secret", false);

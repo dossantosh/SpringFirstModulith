@@ -130,7 +130,7 @@ class UserControllerTest {
 
 	private UserDetailsView detailsView(Long id, String username, String email) {
 		return new UserDetailsView(id, username, email, true, false, Set.of(new RoleView(20L, "USER")),
-				Set.of(new ModuleView(10L, "Users")), Set.of(new SubmoduleView(30L, "SEARCH_USERS")));
+				Set.of(new ModuleView(10L, "Systems")), Set.of(new SubmoduleView(30L, "USERS_SEARCH")));
 	}
 
 	private static Roles role(Long id, String name) {

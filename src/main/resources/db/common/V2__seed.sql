@@ -3,13 +3,18 @@ VALUES ('ADMIN'),
        ('USER') ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO modules (name)
-VALUES ('USERS'),
+VALUES ('SYSTEMS'),
        ('PERFUMES') ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO submodules (name, id_module)
-SELECT 'SEARCH_USERS', id_module
+SELECT 'USERS_SEARCH', id_module
 FROM modules
-WHERE name = 'USERS' ON CONFLICT (name, id_module) DO NOTHING;
+WHERE name = 'SYSTEMS' ON CONFLICT (name, id_module) DO NOTHING;
+
+INSERT INTO submodules (name, id_module)
+SELECT 'PERFUMES_CATALOG', id_module
+FROM modules
+WHERE name = 'PERFUMES' ON CONFLICT (name, id_module) DO NOTHING;
 
 INSERT INTO scopes (name, description)
 VALUES ('users:read', 'Read users'),
@@ -32,6 +37,22 @@ JOIN scopes s ON s.name IN ('users:read', 'users:create', 'users:update', 'users
                             'perfumes:create', 'perfumes:update', 'perfumes:delete', 'role:read',
                             'role:assign', 'scope:read', 'scope:assign')
 WHERE r.name = 'ADMIN' ON CONFLICT (id_role, id_scope) DO NOTHING;
+
+INSERT INTO submodule_required_scopes (id_submodule, id_scope)
+SELECT sm.id_submodule, sc.id_scope
+FROM submodules sm
+JOIN modules m ON m.id_module = sm.id_module
+JOIN scopes sc ON sc.name = 'users:read'
+WHERE m.name = 'SYSTEMS'
+  AND sm.name = 'USERS_SEARCH' ON CONFLICT (id_submodule, id_scope) DO NOTHING;
+
+INSERT INTO submodule_required_scopes (id_submodule, id_scope)
+SELECT sm.id_submodule, sc.id_scope
+FROM submodules sm
+JOIN modules m ON m.id_module = sm.id_module
+JOIN scopes sc ON sc.name = 'perfumes:read'
+WHERE m.name = 'PERFUMES'
+  AND sm.name = 'PERFUMES_CATALOG' ON CONFLICT (id_submodule, id_scope) DO NOTHING;
 
 DELETE
 FROM role_scopes rs

@@ -106,7 +106,7 @@ class AuthControllerTest {
 	@Test
 	void me_doesNotGrantCapabilitiesFromLegacyAuthoritiesWithoutScopes() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
-				List.of(new SimpleGrantedAuthority("SUBMODULE_SEARCH_USERS")));
+				List.of(new SimpleGrantedAuthority("SUBMODULE_USERS_SEARCH")));
 
 		var response = controller.me(authentication, new MockHttpSession());
 

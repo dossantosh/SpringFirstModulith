@@ -60,9 +60,9 @@ class UserAuthCapabilitiesIntegrationTest {
 	void me_mapsRoleScopesToCapabilitiesWithoutGrantingRoleModuleOrSubmoduleAuthorities() {
 		long userId = insertUser("john", "john@example.com", "hashedpw", true, false);
 		long userRole = insertRole("USER");
-		long usersModule = insertModule("USERS");
+		long usersModule = insertModule("SYSTEMS");
 		long perfumesModule = insertModule("PERFUMES");
-		long searchUsers = insertSubmodule("SEARCH_USERS", usersModule);
+		long searchUsers = insertSubmodule("USERS_SEARCH", usersModule);
 		long userRead = insertScope(AuthorizationScopes.USER_READ);
 		long userCreate = insertScope(AuthorizationScopes.USER_CREATE);
 		long userUpdate = insertScope(AuthorizationScopes.USER_UPDATE);
@@ -130,8 +130,8 @@ class UserAuthCapabilitiesIntegrationTest {
 	void me_doesNotGrantCapabilitiesFromModulesOrSubmodulesWithoutScopes() {
 		long userId = insertUser("metadata-only", "metadata@example.com", "hashedpw", true, false);
 		long userRole = insertRole("USER");
-		long usersModule = insertModule("USERS");
-		long searchUsers = insertSubmodule("SEARCH_USERS", usersModule);
+		long usersModule = insertModule("SYSTEMS");
+		long searchUsers = insertSubmodule("USERS_SEARCH", usersModule);
 
 		linkUserRole(userId, userRole);
 		linkUserModule(userId, usersModule);

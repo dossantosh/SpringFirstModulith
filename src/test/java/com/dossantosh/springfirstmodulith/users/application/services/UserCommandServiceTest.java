@@ -43,7 +43,7 @@ class UserCommandServiceTest {
 	void modifyUser_whenValidChangesProvided_updatesExistingAggregateAndSaves() {
 		Modules usersModule = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules searchUsers = submodule(30L, "SEARCH_USERS", usersModule);
+		Submodules searchUsers = submodule(30L, "USERS_SEARCH", usersModule);
 		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(searchUsers));
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "hashed", false, access);
@@ -66,14 +66,14 @@ class UserCommandServiceTest {
 		assertThat(saved.roles()).extracting(Roles::id, Roles::name).containsExactly(tuple(20L, "USER"));
 		assertThat(saved.modules()).extracting(Modules::id, Modules::name).containsExactly(tuple(10L, "Users"));
 		assertThat(saved.submodules()).extracting(Submodules::id, Submodules::name)
-				.containsExactly(tuple(30L, "SEARCH_USERS"));
+				.containsExactly(tuple(30L, "USERS_SEARCH"));
 	}
 
 	@Test
 	void modifyUser_whenPasswordProvided_encodesBeforeSave() {
 		Modules usersModule = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules searchUsers = submodule(30L, "SEARCH_USERS", usersModule);
+		Submodules searchUsers = submodule(30L, "USERS_SEARCH", usersModule);
 		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(searchUsers));
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "oldhash", false, access);

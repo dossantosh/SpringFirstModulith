@@ -37,7 +37,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager,
 			DataViewFromSessionFilter dataViewFromSessionFilter,
-			CurrentSessionDataViewProvider currentSessionDataViewProvider) throws Exception {
+			CurrentSessionDataViewProvider currentSessionDataViewProvider) {
 
 		JsonUsernamePasswordAuthenticationFilter jsonLoginFilter = new JsonUsernamePasswordAuthenticationFilter();
 		jsonLoginFilter.setAuthenticationManager(authenticationManager);

@@ -31,7 +31,7 @@ class UserAccessResolverServiceTest {
 	void resolve_whenAllIdsExist_returnsUserAccess() {
 		Modules users = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules searchUsers = submodule(30L, "SEARCH_USERS", users);
+		Submodules searchUsers = submodule(30L, "USERS_SEARCH", users);
 
 		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of(userRole));
 		when(userAccessLookupPort.findModulesById(List.of(10L))).thenReturn(List.of(users));
@@ -62,7 +62,7 @@ class UserAccessResolverServiceTest {
 		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of());
 		when(userAccessLookupPort.findModulesById(List.of(10L))).thenReturn(List.of(module(10L, "Users")));
 		when(userAccessLookupPort.findSubmodulesById(List.of(30L)))
-				.thenReturn(List.of(submodule(30L, "SEARCH_USERS", module(10L, "Users"))));
+				.thenReturn(List.of(submodule(30L, "USERS_SEARCH", module(10L, "Users"))));
 
 		assertThatThrownBy(() -> userAccessResolverService.resolve(List.of(20L), List.of(10L), List.of(30L)))
 				.isInstanceOf(BusinessException.class).hasMessageContaining("roles");

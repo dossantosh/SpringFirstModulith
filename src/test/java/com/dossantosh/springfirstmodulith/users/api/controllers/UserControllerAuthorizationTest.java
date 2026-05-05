@@ -203,9 +203,9 @@ class UserControllerAuthorizationTest {
 	}
 
 	private UserAccess userAccess() {
-		Modules usersModule = Modules.reference(2L, "USERS");
+		Modules usersModule = Modules.reference(2L, "SYSTEMS");
 		return UserAccess.of(Set.of(Roles.reference(1L, "USER")), Set.of(usersModule),
-				Set.of(Submodules.reference(3L, "SEARCH_USERS", usersModule)));
+				Set.of(Submodules.reference(3L, "USERS_SEARCH", usersModule)));
 	}
 
 	@Configuration
