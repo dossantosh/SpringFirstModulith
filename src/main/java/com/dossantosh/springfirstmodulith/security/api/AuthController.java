@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -42,9 +44,11 @@ public class AuthController {
 	}
 
 	private AuthSessionResponse sessionResponse(Authentication authentication, String dataSource) {
+		List<String> scopes = authorizationService.effectiveScopes(authentication);
+
 		return new AuthSessionResponse(userId(authentication), authentication.getName(), dataSource,
-				authorizationService.roles(authentication), authorizationService.effectiveScopes(authentication),
-				authorizationService.capabilities(authentication));
+				authorizationService.roles(authentication), scopes, authorizationService.capabilities(authentication),
+				AuthNavigationMapper.fromScopes(scopes));
 	}
 
 	private Long userId(Authentication authentication) {

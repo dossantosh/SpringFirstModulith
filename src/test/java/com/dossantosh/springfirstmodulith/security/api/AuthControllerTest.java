@@ -45,6 +45,10 @@ class AuthControllerTest {
 				.isEqualTo(new FeatureCapabilityResponse(true, true, false, false, false));
 		assertThat(body.capabilities().perfumes())
 				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
+		assertThat(body.navigation()).hasSize(1);
+		assertThat(body.navigation().getFirst().key()).isEqualTo("systems");
+		assertThat(body.navigation().getFirst().items()).extracting(NavigationItemResponse::key)
+				.containsExactly("users_search");
 	}
 
 	@Test
@@ -65,6 +69,10 @@ class AuthControllerTest {
 				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
 		assertThat(body.capabilities().perfumes())
 				.isEqualTo(new FeatureCapabilityResponse(true, true, true, true, true));
+		assertThat(body.navigation()).hasSize(1);
+		assertThat(body.navigation().getFirst().key()).isEqualTo("perfumes");
+		assertThat(body.navigation().getFirst().items()).extracting(NavigationItemResponse::key)
+				.containsExactly("perfumes_catalog");
 	}
 
 	@Test
@@ -86,6 +94,8 @@ class AuthControllerTest {
 		assertThat(json.path("capabilities").path("users").path("canAccess").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("users").path("canRead").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("users").path("canCreate").asBoolean()).isFalse();
+		assertThat(json.path("navigation").get(0).path("items").get(0).path("route").asText())
+				.isEqualTo("/users/search");
 	}
 
 	@Test
