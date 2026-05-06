@@ -51,7 +51,7 @@ public class AuthController {
 		List<String> scopes = authorizationService.effectiveScopes(authentication);
 
 		return new AuthSessionResponse(userId(authentication), authentication.getName(), dataSource,
-				authorizationService.roles(authentication), scopes, authorizationService.capabilities(authentication),
+				authorizationService.roles(authentication), scopes,
 				AuthNavigationMapper.fromCatalog(navigationCatalogQuery.findVisibleNavigation(scopes)));
 	}
 

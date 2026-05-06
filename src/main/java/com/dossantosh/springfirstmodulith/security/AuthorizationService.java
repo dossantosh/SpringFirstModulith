@@ -1,8 +1,6 @@
 package com.dossantosh.springfirstmodulith.security;
 
 import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
-import com.dossantosh.springfirstmodulith.security.api.AuthCapabilitiesResponse;
-import com.dossantosh.springfirstmodulith.security.api.AuthCapabilitiesMapper;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -39,9 +37,5 @@ public class AuthorizationService {
 
 		return authentication.getAuthorities().stream().map(granted -> granted.getAuthority())
 				.filter(AuthorizationScopes::isScopeAuthority).sorted().toList();
-	}
-
-	public AuthCapabilitiesResponse capabilities(Authentication authentication) {
-		return AuthCapabilitiesMapper.fromScopes(effectiveScopes(authentication));
 	}
 }

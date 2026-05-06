@@ -13,18 +13,6 @@ public class Permissions {
 		this.authorizationService = authorizationService;
 	}
 
-	public boolean canAccessUsers(Authentication authentication) {
-		return canReadUsers(authentication) || canWriteUsers(authentication);
-	}
-
-	public boolean canReadUsers(Authentication authentication) {
-		return hasScope(authentication, AuthorizationScopes.SYSTEMS_READ);
-	}
-
-	public boolean canWriteUsers(Authentication authentication) {
-		return hasScope(authentication, AuthorizationScopes.SYSTEMS_WRITE);
-	}
-
 	public boolean canApplyUserAccessChange(Authentication authentication, Object requestedAccess) {
 		return requestedAccess == null || hasScope(authentication, AuthorizationScopes.SYSTEMS_WRITE);
 	}

@@ -560,7 +560,7 @@ docker compose down -v
 - A scope uses the `module:action` format. The current actions are only `read` and `write`.
 - Users receive effective scopes through assigned roles. Direct per-user scope grants are intentionally not part of the current model.
 - Spring `GrantedAuthority` remains the internal mechanism for enforcement, but only scopes such as `systems:read` are granted as authorities.
-- Frontend responses expose stable roles, scopes, capabilities, and navigation metadata; never raw Spring authorities.
+- Frontend responses expose stable roles, scopes, and navigation metadata; never raw Spring authorities.
 - Modules and submodules drive UI/navigation metadata. Backend access is still enforced by the required scope for each endpoint.
 - A submodule represents a frontend view identifier such as `USERS_SEARCH`, not a backend permission like read/write.
 - Navigation visibility is derived from `roles -> scopes -> submodule_required_scopes`.
@@ -590,7 +590,7 @@ Current-user authorization data is available from:
 GET /api/auth/me
 ```
 
-The response includes `roles`, effective `scopes`, and `capabilities` derived from those scopes. The frontend may use those capabilities for UX, but the backend remains the source of truth.
+The response includes `roles`, effective `scopes`, and navigation derived from those scopes. The frontend may use scopes for UX, but the backend remains the source of truth.
 
 To add a new permission:
 

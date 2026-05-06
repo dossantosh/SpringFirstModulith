@@ -2,7 +2,6 @@ package com.dossantosh.springfirstmodulith.integration.security;
 
 import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
-import com.dossantosh.springfirstmodulith.security.api.FeatureCapabilityResponse;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
 import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
@@ -36,10 +35,6 @@ class SeededUserScopesIntegrationTest {
 		assertThat(user.getScopes()).containsExactlyInAnyOrderElementsOf(AuthorizationScopes.ALL);
 		assertThat(authorizationService.effectiveScopes(authentication))
 				.containsExactlyInAnyOrderElementsOf(AuthorizationScopes.ALL);
-		assertThat(authorizationService.capabilities(authentication).systems())
-				.isEqualTo(new FeatureCapabilityResponse(true, true));
-		assertThat(authorizationService.capabilities(authentication).perfumes())
-				.isEqualTo(new FeatureCapabilityResponse(true, true));
 		assertThat(navigationCatalogQuery.findVisibleNavigation(user.getScopes())).extracting("key")
 				.containsExactly("systems", "perfumes");
 	}
@@ -56,10 +51,6 @@ class SeededUserScopesIntegrationTest {
 				.containsExactlyInAnyOrder(AuthorizationScopes.SYSTEMS_READ, AuthorizationScopes.SYSTEMS_WRITE);
 		assertThat(authorizationService.effectiveScopes(authentication))
 				.containsExactly(AuthorizationScopes.SYSTEMS_READ, AuthorizationScopes.SYSTEMS_WRITE);
-		assertThat(authorizationService.capabilities(authentication).systems())
-				.isEqualTo(new FeatureCapabilityResponse(true, true));
-		assertThat(authorizationService.capabilities(authentication).perfumes())
-				.isEqualTo(new FeatureCapabilityResponse(false, false));
 		assertThat(navigationCatalogQuery.findVisibleNavigation(user.getScopes())).extracting("key")
 				.containsExactly("systems");
 	}

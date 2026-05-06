@@ -28,7 +28,7 @@ class AuthControllerTest {
 			navigationCatalogQuery);
 
 	@Test
-	void me_returnsUsernameDataSourceAndCapabilitiesFromSession() {
+	void me_returnsUsernameDataSourceScopesAndNavigationFromSession() {
 		CustomUserDetails userDetails = customUserDetails("john", List.of("SYSTEMS"),
 				List.of(AuthorizationScopes.SYSTEMS_READ));
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, "n/a",
@@ -46,10 +46,6 @@ class AuthControllerTest {
 		assertThat(body.dataSource()).isEqualTo("historic");
 		assertThat(body.roles()).containsExactly("SYSTEMS");
 		assertThat(body.scopes()).containsExactly(AuthorizationScopes.SYSTEMS_READ);
-		assertThat(body.capabilities().systems())
-				.isEqualTo(new FeatureCapabilityResponse(true, false));
-		assertThat(body.capabilities().perfumes())
-				.isEqualTo(new FeatureCapabilityResponse(false, false));
 		assertThat(body.navigation()).hasSize(1);
 		assertThat(body.navigation().getFirst().key()).isEqualTo("systems");
 		assertThat(body.navigation().getFirst().items()).extracting(NavigationItemResponse::key)
@@ -57,7 +53,7 @@ class AuthControllerTest {
 	}
 
 	@Test
-	void me_returnsPerfumeCapabilitiesDerivedFromAuthorities() {
+	void me_returnsPerfumeNavigationDerivedFromScopes() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
 				List.of(new SimpleGrantedAuthority(AuthorizationScopes.PERFUMES_READ),
 						new SimpleGrantedAuthority(AuthorizationScopes.PERFUMES_WRITE)));
@@ -68,10 +64,8 @@ class AuthControllerTest {
 		assertThat(response.getBody()).isInstanceOf(AuthSessionResponse.class);
 
 		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
-		assertThat(body.capabilities().systems())
-				.isEqualTo(new FeatureCapabilityResponse(false, false));
-		assertThat(body.capabilities().perfumes())
-				.isEqualTo(new FeatureCapabilityResponse(true, true));
+		assertThat(body.scopes()).containsExactly(AuthorizationScopes.PERFUMES_READ,
+				AuthorizationScopes.PERFUMES_WRITE);
 		assertThat(body.navigation()).hasSize(1);
 		assertThat(body.navigation().getFirst().key()).isEqualTo("perfumes");
 		assertThat(body.navigation().getFirst().items()).extracting(NavigationItemResponse::key)
@@ -79,7 +73,7 @@ class AuthControllerTest {
 	}
 
 	@Test
-	void me_serializesCapabilitiesWithoutExposingAuthorities() {
+	void me_serializesScopesWithoutExposingAuthorities() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
 				List.of(new SimpleGrantedAuthority(AuthorizationScopes.SYSTEMS_READ)));
 
@@ -91,15 +85,6 @@ class AuthControllerTest {
 		assertThat(json.has("authorities")).isFalse();
 		assertThat(json.path("username").asText()).isEqualTo("john");
 		assertThat(json.path("scopes").get(0).asText()).isEqualTo(AuthorizationScopes.SYSTEMS_READ);
-		assertThat(json.path("capabilities").path("systems").has("access")).isFalse();
-		assertThat(json.path("capabilities").path("systems").has("read")).isFalse();
-		assertThat(json.path("capabilities").path("systems").has("write")).isFalse();
-		assertThat(json.path("capabilities").path("systems").path("canRead").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("systems").path("canWrite").asBoolean()).isFalse();
-		assertThat(json.path("capabilities").path("systems").has("canAccess")).isFalse();
-		assertThat(json.path("capabilities").path("systems").has("canCreate")).isFalse();
-		assertThat(json.path("capabilities").path("systems").has("canUpdate")).isFalse();
-		assertThat(json.path("capabilities").path("systems").has("canDelete")).isFalse();
 		assertThat(json.path("navigation").get(0).path("items").get(0).path("route").asText())
 				.isEqualTo("/users/search");
 	}
@@ -120,7 +105,7 @@ class AuthControllerTest {
 	}
 
 	@Test
-	void me_doesNotGrantCapabilitiesFromLegacyAuthoritiesWithoutScopes() {
+	void me_ignoresLegacyAuthoritiesWithoutScopes() {
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken("john", "n/a",
 				List.of(new SimpleGrantedAuthority("SUBMODULE_USERS_SEARCH")));
 
@@ -130,8 +115,8 @@ class AuthControllerTest {
 		assertThat(response.getBody()).isInstanceOf(AuthSessionResponse.class);
 
 		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
-		assertThat(body.capabilities().systems())
-				.isEqualTo(new FeatureCapabilityResponse(false, false));
+		assertThat(body.scopes()).isEmpty();
+		assertThat(body.navigation()).isEmpty();
 	}
 
 	@Test

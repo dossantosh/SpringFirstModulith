@@ -57,7 +57,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
-	void getUsers_whenUserCanReadUsers_returnsUsers() {
+	void getUsers_whenUserHasSystemsReadScope_returnsUsers() {
 		KeysetPage<UserSummaryView> page = new KeysetPage<>();
 		page.setContent(List.of(new UserSummaryView(1L, "john", "john@example.com", true, false)));
 
@@ -71,7 +71,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
-	void getUserDetails_whenUserCanReadUsers_returnsDetails() {
+	void getUserDetails_whenUserHasSystemsReadScope_returnsDetails() {
 		UserDetailsView details = detailsView(1L);
 		when(userQueryService.getUserDetails(1L)).thenReturn(details);
 
@@ -83,7 +83,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser
-	void getUsers_whenUserCannotReadUsers_isDenied() {
+	void getUsers_withoutSystemsReadScope_isDenied() {
 		assertThatThrownBy(() -> userController.getUsers(null, null, null, null, 25, "NEXT"))
 				.isInstanceOf(AccessDeniedException.class);
 
@@ -92,7 +92,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_WRITE)
-	void createUser_withoutAccessChangeWhenUserCanCreateUsers_returnsCreatedDetails() {
+	void createUser_withoutAccessChangeWhenUserHasSystemsWriteScope_returnsCreatedDetails() {
 		User created = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
 		UserDetailsView details = detailsView(7L);
 
@@ -108,7 +108,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
-	void createUser_withAccessChangeWhenUserCannotWriteSystems_isDenied() {
+	void createUser_withAccessChangeWithoutSystemsWriteScope_isDenied() {
 		assertThatThrownBy(() -> userController.createUser(createRequestWithAccess()))
 				.isInstanceOf(AccessDeniedException.class);
 
@@ -117,7 +117,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_WRITE)
-	void createUser_withAccessChangeWhenUserCanWriteSystems_returnsCreatedDetails() {
+	void createUser_withAccessChangeWhenUserHasSystemsWriteScope_returnsCreatedDetails() {
 		User created = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
 		UserDetailsView details = detailsView(7L);
 
@@ -134,7 +134,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
-	void createUser_whenUserCannotWriteUsers_isDenied() {
+	void createUser_withoutSystemsWriteScope_isDenied() {
 		assertThatThrownBy(() -> userController
 				.createUser(new CreateUserRequest("john", "john@example.com", "secretPass1", false, null)))
 				.isInstanceOf(AccessDeniedException.class);
@@ -144,7 +144,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
-	void updateUser_whenUserCannotWriteUsers_isDenied() {
+	void updateUser_withoutSystemsWriteScope_isDenied() {
 		assertThatThrownBy(() -> userController.updateUser(7L,
 				new UpdateUserRequest("john", "john@example.com", true, null, false, null)))
 				.isInstanceOf(AccessDeniedException.class);
@@ -154,7 +154,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
-	void updateUser_withAccessChangeWhenUserCannotWriteSystems_isDenied() {
+	void updateUser_withAccessChangeWithoutSystemsWriteScope_isDenied() {
 		assertThatThrownBy(() -> userController.updateUser(7L,
 				new UpdateUserRequest("john", "john@example.com", true, null, false, accessRequest())))
 				.isInstanceOf(AccessDeniedException.class);
@@ -164,7 +164,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_WRITE)
-	void updateUser_withAccessChangeWhenUserCanWriteSystems_returnsDetails() {
+	void updateUser_withAccessChangeWhenUserHasSystemsWriteScope_returnsDetails() {
 		User updated = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
 		UserDetailsView details = detailsView(7L);
 
@@ -182,7 +182,7 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
-	void deleteUser_whenUserCannotWriteUsers_isDenied() {
+	void deleteUser_withoutSystemsWriteScope_isDenied() {
 		assertThatThrownBy(() -> userController.deleteUser(7L)).isInstanceOf(AccessDeniedException.class);
 
 		verifyNoInteractions(userCommandService);
