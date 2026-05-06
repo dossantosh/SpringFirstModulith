@@ -109,19 +109,21 @@ class UserAuthCapabilitiesIntegrationTest {
 		assertThat(json.path("capabilities").path("systems").has("access")).isFalse();
 		assertThat(json.path("capabilities").path("systems").has("read")).isFalse();
 		assertThat(json.path("capabilities").path("systems").has("write")).isFalse();
-		assertThat(json.path("capabilities").path("systems").path("canAccess").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("systems").path("canRead").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("systems").path("canCreate").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("systems").path("canUpdate").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("systems").path("canDelete").asBoolean()).isTrue();
+		assertThat(json.path("capabilities").path("systems").path("canWrite").asBoolean()).isTrue();
+		assertThat(json.path("capabilities").path("systems").has("canAccess")).isFalse();
+		assertThat(json.path("capabilities").path("systems").has("canCreate")).isFalse();
+		assertThat(json.path("capabilities").path("systems").has("canUpdate")).isFalse();
+		assertThat(json.path("capabilities").path("systems").has("canDelete")).isFalse();
 		assertThat(json.path("capabilities").path("perfumes").has("access")).isFalse();
 		assertThat(json.path("capabilities").path("perfumes").has("read")).isFalse();
 		assertThat(json.path("capabilities").path("perfumes").has("write")).isFalse();
-		assertThat(json.path("capabilities").path("perfumes").path("canAccess").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("perfumes").path("canRead").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("perfumes").path("canCreate").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("perfumes").path("canUpdate").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("perfumes").path("canDelete").asBoolean()).isTrue();
+		assertThat(json.path("capabilities").path("perfumes").path("canWrite").asBoolean()).isTrue();
+		assertThat(json.path("capabilities").path("perfumes").has("canAccess")).isFalse();
+		assertThat(json.path("capabilities").path("perfumes").has("canCreate")).isFalse();
+		assertThat(json.path("capabilities").path("perfumes").has("canUpdate")).isFalse();
+		assertThat(json.path("capabilities").path("perfumes").has("canDelete")).isFalse();
 	}
 
 	@Test
@@ -148,8 +150,8 @@ class UserAuthCapabilitiesIntegrationTest {
 		var json = objectMapper.valueToTree(response.getBody());
 		assertThat(json.path("scopes").isEmpty()).isTrue();
 		assertThat(json.path("roles").get(0).asText()).isEqualTo("SYSTEMS");
-		assertThat(json.path("capabilities").path("systems").path("canAccess").asBoolean()).isFalse();
 		assertThat(json.path("capabilities").path("systems").path("canRead").asBoolean()).isFalse();
+		assertThat(json.path("capabilities").path("systems").path("canWrite").asBoolean()).isFalse();
 	}
 
 	private long insertUser(String username, String email, String password, boolean enabled, boolean isAdmin) {

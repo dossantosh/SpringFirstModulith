@@ -35,7 +35,7 @@ public final class AuthCapabilitiesMapper {
 		boolean canRead = scopes.contains(definition.read());
 		boolean canWrite = scopes.contains(definition.write());
 
-		return new FeatureCapabilityResponse(canRead || canWrite, canRead, canWrite, canWrite, canWrite);
+		return new FeatureCapabilityResponse(canRead, canWrite);
 	}
 
 	private record CapabilityDefinition(String read, String write) {

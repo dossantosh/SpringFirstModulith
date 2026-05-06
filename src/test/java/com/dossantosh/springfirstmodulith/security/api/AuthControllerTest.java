@@ -47,9 +47,9 @@ class AuthControllerTest {
 		assertThat(body.roles()).containsExactly("SYSTEMS");
 		assertThat(body.scopes()).containsExactly(AuthorizationScopes.SYSTEMS_READ);
 		assertThat(body.capabilities().systems())
-				.isEqualTo(new FeatureCapabilityResponse(true, true, false, false, false));
+				.isEqualTo(new FeatureCapabilityResponse(true, false));
 		assertThat(body.capabilities().perfumes())
-				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
+				.isEqualTo(new FeatureCapabilityResponse(false, false));
 		assertThat(body.navigation()).hasSize(1);
 		assertThat(body.navigation().getFirst().key()).isEqualTo("systems");
 		assertThat(body.navigation().getFirst().items()).extracting(NavigationItemResponse::key)
@@ -69,9 +69,9 @@ class AuthControllerTest {
 
 		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
 		assertThat(body.capabilities().systems())
-				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
+				.isEqualTo(new FeatureCapabilityResponse(false, false));
 		assertThat(body.capabilities().perfumes())
-				.isEqualTo(new FeatureCapabilityResponse(true, true, true, true, true));
+				.isEqualTo(new FeatureCapabilityResponse(true, true));
 		assertThat(body.navigation()).hasSize(1);
 		assertThat(body.navigation().getFirst().key()).isEqualTo("perfumes");
 		assertThat(body.navigation().getFirst().items()).extracting(NavigationItemResponse::key)
@@ -94,9 +94,12 @@ class AuthControllerTest {
 		assertThat(json.path("capabilities").path("systems").has("access")).isFalse();
 		assertThat(json.path("capabilities").path("systems").has("read")).isFalse();
 		assertThat(json.path("capabilities").path("systems").has("write")).isFalse();
-		assertThat(json.path("capabilities").path("systems").path("canAccess").asBoolean()).isTrue();
 		assertThat(json.path("capabilities").path("systems").path("canRead").asBoolean()).isTrue();
-		assertThat(json.path("capabilities").path("systems").path("canCreate").asBoolean()).isFalse();
+		assertThat(json.path("capabilities").path("systems").path("canWrite").asBoolean()).isFalse();
+		assertThat(json.path("capabilities").path("systems").has("canAccess")).isFalse();
+		assertThat(json.path("capabilities").path("systems").has("canCreate")).isFalse();
+		assertThat(json.path("capabilities").path("systems").has("canUpdate")).isFalse();
+		assertThat(json.path("capabilities").path("systems").has("canDelete")).isFalse();
 		assertThat(json.path("navigation").get(0).path("items").get(0).path("route").asText())
 				.isEqualTo("/users/search");
 	}
@@ -128,7 +131,7 @@ class AuthControllerTest {
 
 		AuthSessionResponse body = (AuthSessionResponse) response.getBody();
 		assertThat(body.capabilities().systems())
-				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
+				.isEqualTo(new FeatureCapabilityResponse(false, false));
 	}
 
 	@Test
