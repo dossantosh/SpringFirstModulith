@@ -18,17 +18,15 @@ public class Permissions {
 	}
 
 	public boolean canReadUsers(Authentication authentication) {
-		return hasScope(authentication, AuthorizationScopes.USER_READ);
+		return hasScope(authentication, AuthorizationScopes.SYSTEMS_READ);
 	}
 
 	public boolean canWriteUsers(Authentication authentication) {
-		return hasScope(authentication, AuthorizationScopes.USER_CREATE)
-				|| hasScope(authentication, AuthorizationScopes.USER_UPDATE)
-				|| hasScope(authentication, AuthorizationScopes.USER_DELETE);
+		return hasScope(authentication, AuthorizationScopes.SYSTEMS_WRITE);
 	}
 
 	public boolean canApplyUserAccessChange(Authentication authentication, Object requestedAccess) {
-		return requestedAccess == null || hasScope(authentication, AuthorizationScopes.ROLE_ASSIGN);
+		return requestedAccess == null || hasScope(authentication, AuthorizationScopes.SYSTEMS_WRITE);
 	}
 
 	public boolean hasScope(Authentication authentication, String scope) {

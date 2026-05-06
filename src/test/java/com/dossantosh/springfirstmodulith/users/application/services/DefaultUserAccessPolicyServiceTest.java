@@ -27,22 +27,21 @@ class DefaultUserAccessPolicyServiceTest {
 
 	@Test
 	void defaultAccessForNewUser_resolvesDefaultRoleOnly() {
-		Roles role = Roles.reference(1L, "USER");
+		Roles role = Roles.reference(1L, "SYSTEMS");
 
-		when(accessCatalog.findRoleByName("USER")).thenReturn(Optional.of(role));
+		when(accessCatalog.findRoleByName("SYSTEMS")).thenReturn(Optional.of(role));
 
 		UserAccess access = policyService.defaultAccessForNewUser();
 
 		assertThat(access.roles()).containsExactly(role);
-		assertThat(access.modules()).isEmpty();
-		assertThat(access.submodules()).isEmpty();
 	}
 
 	@Test
 	void defaultAccessForNewUser_whenRoleMissing_throwsBusinessException() {
-		when(accessCatalog.findRoleByName("USER")).thenReturn(Optional.empty());
+		when(accessCatalog.findRoleByName("SYSTEMS")).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> policyService.defaultAccessForNewUser()).isInstanceOf(BusinessException.class)
-				.hasMessageContaining("Default role 'USER' was not found");
+				.hasMessageContaining("Default role 'SYSTEMS' was not found");
 	}
 }
+

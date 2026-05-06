@@ -2,9 +2,7 @@ package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
 import com.dossantosh.springfirstmodulith.users.application.ports.out.UserAccessLookupPort;
-import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
-import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import org.springframework.stereotype.Service;
 
@@ -21,28 +19,16 @@ public class UserAccessResolverService {
 		this.userAccessLookupPort = userAccessLookupPort;
 	}
 
-	public UserAccess resolve(List<Long> roleIds, List<Long> moduleIds, List<Long> submoduleIds) {
+	public UserAccess resolve(List<Long> roleIds) {
 		Set<Long> distinctRoleIds = toRequiredDistinctIds(roleIds, "roleIds");
-		Set<Long> distinctModuleIds = toOptionalDistinctIds(moduleIds, "moduleIds");
-		Set<Long> distinctSubmoduleIds = toOptionalDistinctIds(submoduleIds, "submoduleIds");
 
 		Set<Roles> roles = new LinkedHashSet<>(userAccessLookupPort.findRolesById(List.copyOf(distinctRoleIds)));
-		Set<Modules> modules = new LinkedHashSet<>(
-				userAccessLookupPort.findModulesById(List.copyOf(distinctModuleIds)));
-		Set<Submodules> submodules = new LinkedHashSet<>(
-				userAccessLookupPort.findSubmodulesById(List.copyOf(distinctSubmoduleIds)));
 
 		if (roles.size() != distinctRoleIds.size()) {
 			throw new BusinessException("One or more roles were not found");
 		}
-		if (modules.size() != distinctModuleIds.size()) {
-			throw new BusinessException("One or more modules were not found");
-		}
-		if (submodules.size() != distinctSubmoduleIds.size()) {
-			throw new BusinessException("One or more submodules were not found");
-		}
 
-		return UserAccess.of(roles, modules, submodules);
+		return UserAccess.of(roles);
 	}
 
 	private Set<Long> toRequiredDistinctIds(List<Long> ids, String fieldName) {

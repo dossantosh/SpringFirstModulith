@@ -59,3 +59,4 @@ class ArchitectureTest {
 				.check(IMPORTED_CLASSES);
 	}
 }
+

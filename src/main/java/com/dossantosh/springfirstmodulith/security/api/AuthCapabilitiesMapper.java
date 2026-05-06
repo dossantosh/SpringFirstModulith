@@ -3,31 +3,41 @@ package com.dossantosh.springfirstmodulith.security.api;
 import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class AuthCapabilitiesMapper {
+
+	private static final CapabilityDefinition SYSTEMS = new CapabilityDefinition(AuthorizationScopes.SYSTEMS_READ,
+			AuthorizationScopes.SYSTEMS_WRITE);
+
+	private static final CapabilityDefinition PERFUMES = new CapabilityDefinition(AuthorizationScopes.PERFUMES_READ,
+			AuthorizationScopes.PERFUMES_WRITE);
 
 	private AuthCapabilitiesMapper() {
 	}
 
 	public static AuthCapabilitiesResponse fromScopes(Collection<String> scopes) {
-		Set<String> current = scopes == null ? Set.of() : new HashSet<>(scopes);
-		boolean canCreateUsers = current.contains(AuthorizationScopes.USER_CREATE);
-		boolean canUpdateUsers = current.contains(AuthorizationScopes.USER_UPDATE);
-		boolean canDeleteUsers = current.contains(AuthorizationScopes.USER_DELETE);
-		boolean canCreatePerfumes = current.contains(AuthorizationScopes.PERFUME_CREATE);
-		boolean canUpdatePerfumes = current.contains(AuthorizationScopes.PERFUME_UPDATE);
-		boolean canDeletePerfumes = current.contains(AuthorizationScopes.PERFUME_DELETE);
+		Set<String> current = normalizeScopes(scopes);
 
-		boolean canReadUsers = current.contains(AuthorizationScopes.USER_READ);
-		boolean canReadPerfumes = current.contains(AuthorizationScopes.PERFUME_READ);
+		return new AuthCapabilitiesResponse(capabilityFor(current, SYSTEMS), capabilityFor(current, PERFUMES));
+	}
 
-		return new AuthCapabilitiesResponse(
-				new FeatureCapabilityResponse(canReadUsers || canCreateUsers || canUpdateUsers || canDeleteUsers,
-						canReadUsers, canCreateUsers, canUpdateUsers, canDeleteUsers),
-				new FeatureCapabilityResponse(
-						canReadPerfumes || canCreatePerfumes || canUpdatePerfumes || canDeletePerfumes, canReadPerfumes,
-						canCreatePerfumes, canUpdatePerfumes, canDeletePerfumes));
+	private static Set<String> normalizeScopes(Collection<String> scopes) {
+		if (scopes == null || scopes.isEmpty()) {
+			return Set.of();
+		}
+		return scopes.stream().filter(Objects::nonNull).collect(Collectors.toUnmodifiableSet());
+	}
+
+	private static FeatureCapabilityResponse capabilityFor(Set<String> scopes, CapabilityDefinition definition) {
+		boolean canRead = scopes.contains(definition.read());
+		boolean canWrite = scopes.contains(definition.write());
+
+		return new FeatureCapabilityResponse(canRead || canWrite, canRead, canWrite, canWrite, canWrite);
+	}
+
+	private record CapabilityDefinition(String read, String write) {
 	}
 }

@@ -37,14 +37,6 @@ public class User {
 	@JoinTable(name = "users_roles", joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_role", referencedColumnName = "id_role"))
 	private final Set<Roles> roles = new LinkedHashSet<>();
 
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "users_modules", joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_module", referencedColumnName = "id_module"))
-	private final Set<Modules> modules = new LinkedHashSet<>();
-
-	@ManyToMany(fetch = FetchType.LAZY)
-	@JoinTable(name = "users_submodules", joinColumns = @JoinColumn(name = "id_user", referencedColumnName = "id_user"), inverseJoinColumns = @JoinColumn(name = "id_submodule", referencedColumnName = "id_submodule"))
-	private final Set<Submodules> submodules = new LinkedHashSet<>();
-
 	public User() {
 	}
 
@@ -101,14 +93,6 @@ public class User {
 		return isAdmin;
 	}
 
-	public Set<Modules> modules() {
-		return Collections.unmodifiableSet(modules);
-	}
-
-	public Set<Submodules> submodules() {
-		return Collections.unmodifiableSet(submodules);
-	}
-
 	public void renameTo(String username) {
 		String normalized = normalizeRequired(username, "username");
 		this.username = normalized;
@@ -148,7 +132,6 @@ public class User {
 		changePassword(password);
 		changeAdministratorStatus(Boolean.TRUE.equals(isAdmin));
 		activate();
-		validateAccessStateForCreation();
 	}
 
 	public void replaceAccess(UserAccess access) {
@@ -158,12 +141,6 @@ public class User {
 
 		this.roles.clear();
 		this.roles.addAll(access.roles());
-
-		this.modules.clear();
-		this.modules.addAll(access.modules());
-
-		this.submodules.clear();
-		this.submodules.addAll(access.submodules());
 	}
 
 	public void applyChangesFrom(UserChanges changes, UserUniquenessPolicy uniquenessPolicy) {
@@ -203,7 +180,7 @@ public class User {
 	}
 
 	public boolean hasNoAccessAssigned() {
-		return roles.isEmpty() && modules.isEmpty() && submodules.isEmpty();
+		return roles.isEmpty();
 	}
 
 	private static String normalizeRequired(String value, String fieldName) {
@@ -276,14 +253,6 @@ public class User {
 			throw new BusinessException("User uniqueness policy cannot be null");
 		}
 		return uniquenessPolicy;
-	}
-
-	private void validateAccessStateForCreation() {
-		boolean hasNavigationMetadata = !modules.isEmpty() || !submodules.isEmpty();
-
-		if (hasNavigationMetadata && roles.isEmpty()) {
-			throw new BusinessException("Navigation metadata cannot be assigned without at least one role");
-		}
 	}
 
 	@Override

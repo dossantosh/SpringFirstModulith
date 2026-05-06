@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Override
-	@EntityGraph(attributePaths = {"roles", "modules", "submodules"})
+	@EntityGraph(attributePaths = {"roles"})
 	Optional<User> findById(Long id);
 
 	boolean existsById(Long id);
@@ -47,12 +47,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			                JOIN role_scopes rs ON s.id_scope = rs.id_scope
 			                JOIN users_roles ur ON rs.id_role = ur.id_role
 			                WHERE ur.id_user = u.id_user
-			                UNION
-			                SELECT DISTINCT s.name AS scope_name
-			                FROM scopes s
-			                JOIN user_scope_grants usg ON s.id_scope = usg.id_scope
-			                WHERE usg.id_user = u.id_user
-			                  AND (usg.expires_at IS NULL OR usg.expires_at > CURRENT_TIMESTAMP)
 			            ) effective_scopes
 			        ) AS scopes
 			    FROM users u
@@ -84,6 +78,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			@Param("email") String email, @Param("lastId") Long lastId, @Param("limit") int limit,
 			@Param("direction") String direction);
 
-	@EntityGraph(attributePaths = {"roles", "modules", "submodules"})
+	@EntityGraph(attributePaths = {"roles"})
 	Optional<User> findFullUserById(Long id);
 }

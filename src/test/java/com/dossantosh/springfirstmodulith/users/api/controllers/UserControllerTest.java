@@ -4,9 +4,7 @@ import com.dossantosh.springfirstmodulith.core.exceptions.GlobalExceptionHandler
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
-import com.dossantosh.springfirstmodulith.users.application.views.ModuleView;
 import com.dossantosh.springfirstmodulith.users.application.views.RoleView;
-import com.dossantosh.springfirstmodulith.users.application.views.SubmoduleView;
 import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
 import com.dossantosh.springfirstmodulith.users.domain.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,9 +56,9 @@ class UserControllerTest {
 	@Test
 	void createUser_whenValidRequest_returnsCreatedDetails() throws Exception {
 		Roles userRole = role(20L, "USER");
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(), Set.of());
+		UserAccess access = UserAccess.of(Set.of(userRole));
 
-		when(userAccessResolverService.resolve(List.of(20L), null, null)).thenReturn(access);
+		when(userAccessResolverService.resolve(List.of(20L))).thenReturn(access);
 		when(userCommandService.createUser(any(User.class)))
 				.thenReturn(User.rehydrate(99L, "john", "john@x.com", true, "hashed", false, access));
 		when(userQueryService.getUserDetails(99L)).thenReturn(detailsView(99L, "john", "john@x.com"));
@@ -129,19 +127,11 @@ class UserControllerTest {
 	}
 
 	private UserDetailsView detailsView(Long id, String username, String email) {
-		return new UserDetailsView(id, username, email, true, false, Set.of(new RoleView(20L, "USER")),
-				Set.of(new ModuleView(10L, "Systems")), Set.of(new SubmoduleView(30L, "USERS_SEARCH")));
+		return new UserDetailsView(id, username, email, true, false, Set.of(new RoleView(20L, "USER")));
 	}
 
 	private static Roles role(Long id, String name) {
 		return Roles.reference(id, name);
 	}
-
-	private static Modules module(Long id, String name) {
-		return Modules.reference(id, name);
-	}
-
-	private static Submodules submodule(Long id, String name, Modules module) {
-		return Submodules.reference(id, name, module);
-	}
 }
+

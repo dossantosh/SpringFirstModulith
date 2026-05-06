@@ -4,9 +4,7 @@ import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.application.ports.out.UserQueryPort;
 import com.dossantosh.springfirstmodulith.users.application.views.*;
-import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
-import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.User;
 import org.springframework.stereotype.Service;
 
@@ -89,17 +87,6 @@ public class UserQueryService {
 			roleViews.add(new RoleView(role.id(), role.name()));
 		}
 
-		LinkedHashSet<ModuleView> moduleViews = new LinkedHashSet<>();
-		for (Modules module : user.modules()) {
-			moduleViews.add(new ModuleView(module.id(), module.name()));
-		}
-
-		LinkedHashSet<SubmoduleView> submoduleViews = new LinkedHashSet<>();
-		for (Submodules submodule : user.submodules()) {
-			submoduleViews.add(new SubmoduleView(submodule.id(), submodule.name()));
-		}
-
-		return new UserDetailsView(user.id(), user.username(), user.email(), user.enabled(), user.isAdmin(), roleViews,
-				moduleViews, submoduleViews);
+		return new UserDetailsView(user.id(), user.username(), user.email(), user.enabled(), user.isAdmin(), roleViews);
 	}
 }

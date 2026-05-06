@@ -556,20 +556,19 @@ docker compose down -v
 
 ### Authorization Model
 
-- A role groups scopes, for example `ADMIN` can receive every scope and `USER` can receive `users:read`.
-- A scope is a granular business permission using the `resource:action` format, for example `users:read`, `users:create`, `users:update`, `users:delete`.
-- A user can receive scopes from assigned roles and extra direct grants in `user_scope_grants`.
-- Direct grants with `expires_at` in the past are ignored when effective scopes are calculated.
-- Spring `GrantedAuthority` remains the internal mechanism for enforcement, but only scopes such as `users:read` are granted as authorities.
-- Frontend responses expose stable capabilities and scopes, never raw Spring authorities.
-- Modules and submodules remain available as optional UI/navigation metadata; they do not grant backend access.
-- A submodule represents a frontend view identifier such as `SEARCH_USERS`, not a backend permission like read/write.
-- Module and submodule assignments are optional metadata; a user can be authorized with role scopes only.
+- A role groups the scopes for one ERP module. For now, `SYSTEMS` grants `systems:read` and `systems:write`; `PERFUMES` grants `perfumes:read` and `perfumes:write`.
+- A scope uses the `module:action` format. The current actions are only `read` and `write`.
+- Users receive effective scopes through assigned roles. Direct per-user scope grants are intentionally not part of the current model.
+- Spring `GrantedAuthority` remains the internal mechanism for enforcement, but only scopes such as `systems:read` are granted as authorities.
+- Frontend responses expose stable roles, scopes, capabilities, and navigation metadata; never raw Spring authorities.
+- Modules and submodules drive UI/navigation metadata. Backend access is still enforced by the required scope for each endpoint.
+- A submodule represents a frontend view identifier such as `USERS_SEARCH`, not a backend permission like read/write.
+- Navigation visibility is derived from `roles -> scopes -> submodule_required_scopes`.
 
 To protect a backend action, require the concrete scope:
 
 ```java
-@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_READ + "')")
+@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_READ + "')")
 @GetMapping("/api/users")
 ```
 
@@ -578,27 +577,26 @@ Do not protect business actions with roles, modules, or submodules:
 ```java
 // Not allowed for authorization
 hasRole("ADMIN")
-hasAuthority("MODULE_USERS")
-hasAuthority("SUBMODULE_SEARCH_USERS")
+hasAuthority("MODULE_SYSTEMS")
+hasAuthority("SUBMODULE_USERS_SEARCH")
 ```
 
-If a user has `users:read`, the user can execute the read action even without module or submodule metadata.
-If a user has module/submodule metadata but lacks `users:read`, the backend must return `403`.
+If a user has `systems:read`, the user can execute the users read action because users currently belongs to the Systems module.
+If a user has navigation metadata but lacks the required scope, the backend must return `403`.
 
 Current-user authorization data is available from:
 
 ```http
 GET /api/auth/me
-GET /api/me/capabilities
 ```
 
 The response includes `roles`, effective `scopes`, and `capabilities` derived from those scopes. The frontend may use those capabilities for UX, but the backend remains the source of truth.
 
 To add a new permission:
 
-1. Add an atomic scope in `AuthorizationScopes`, for example `users:disable`.
+1. Add a module-level scope in `AuthorizationScopes`, for example `orders:read` and `orders:write`.
 2. Seed the scope in a Flyway migration.
-3. Assign the scope to one or more roles through `role_scopes`, or grant it directly through `user_scope_grants`.
+3. Assign the scope to one or more roles through `role_scopes`.
 4. Protect backend endpoints with the new scope.
 5. Add the matching frontend constant in `AUTH_SCOPES`.
 6. Use `scopeGuard`, `appHasScope`, or `AuthFacade.hasScope(...)` for UX visibility.

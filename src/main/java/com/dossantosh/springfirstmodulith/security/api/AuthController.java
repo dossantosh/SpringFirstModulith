@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import com.dossantosh.springfirstmodulith.security.session.CurrentDataViewQuery;
+import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -20,10 +21,13 @@ public class AuthController {
 
 	private final CurrentDataViewQuery currentDataViewQuery;
 	private final AuthorizationService authorizationService;
+	private final NavigationCatalogQuery navigationCatalogQuery;
 
-	public AuthController(CurrentDataViewQuery currentDataViewQuery, AuthorizationService authorizationService) {
+	public AuthController(CurrentDataViewQuery currentDataViewQuery, AuthorizationService authorizationService,
+			NavigationCatalogQuery navigationCatalogQuery) {
 		this.currentDataViewQuery = currentDataViewQuery;
 		this.authorizationService = authorizationService;
+		this.navigationCatalogQuery = navigationCatalogQuery;
 	}
 
 	@PreAuthorize("isAuthenticated()")
@@ -48,7 +52,7 @@ public class AuthController {
 
 		return new AuthSessionResponse(userId(authentication), authentication.getName(), dataSource,
 				authorizationService.roles(authentication), scopes, authorizationService.capabilities(authentication),
-				AuthNavigationMapper.fromScopes(scopes));
+				AuthNavigationMapper.fromCatalog(navigationCatalogQuery.findVisibleNavigation(scopes)));
 	}
 
 	private Long userId(Authentication authentication) {

@@ -103,3 +103,4 @@ class UserQueryServiceTest {
 		assertThat(page.isHasPrevious()).isFalse();
 	}
 }
+

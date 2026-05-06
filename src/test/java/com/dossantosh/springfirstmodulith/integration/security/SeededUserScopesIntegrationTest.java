@@ -5,6 +5,7 @@ import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.api.FeatureCapabilityResponse;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
+import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,34 +24,44 @@ class SeededUserScopesIntegrationTest {
 	@Autowired
 	private AuthorizationService authorizationService;
 
+	@Autowired
+	private NavigationCatalogQuery navigationCatalogQuery;
+
 	@Test
-	void dossantosh_keepsFullAccessFromAdminScopes() {
+	void dossantosh_keepsFullAccessFromModuleRoles() {
 		CustomUserDetails user = loadUser("dossantosh");
 		var authentication = authenticationFor(user);
 
-		assertThat(user.getRoles()).containsExactly("ADMIN");
+		assertThat(user.getRoles()).containsExactlyInAnyOrder("SYSTEMS", "PERFUMES");
 		assertThat(user.getScopes()).containsExactlyInAnyOrderElementsOf(AuthorizationScopes.ALL);
 		assertThat(authorizationService.effectiveScopes(authentication))
 				.containsExactlyInAnyOrderElementsOf(AuthorizationScopes.ALL);
-		assertThat(authorizationService.capabilities(authentication).users())
+		assertThat(authorizationService.capabilities(authentication).systems())
 				.isEqualTo(new FeatureCapabilityResponse(true, true, true, true, true));
 		assertThat(authorizationService.capabilities(authentication).perfumes())
 				.isEqualTo(new FeatureCapabilityResponse(true, true, true, true, true));
+		assertThat(navigationCatalogQuery.findVisibleNavigation(user.getScopes())).extracting("key")
+				.containsExactly("systems", "perfumes");
 	}
 
 	@Test
-	void sevas_keepsOnlyShellAccessWithoutFunctionalScopes() {
+	void sevas_keepsOnlySystemsAccess() {
 		CustomUserDetails user = loadUser("sevas");
 		var authentication = authenticationFor(user);
 
-		assertThat(user.getRoles()).containsExactly("USER");
-		assertThat(user.getScopes()).isEmpty();
-		assertThat(user.getAuthorities()).isEmpty();
-		assertThat(authorizationService.effectiveScopes(authentication)).isEmpty();
-		assertThat(authorizationService.capabilities(authentication).users())
-				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
+		assertThat(user.getRoles()).containsExactly("SYSTEMS");
+		assertThat(user.getScopes()).containsExactlyInAnyOrder(AuthorizationScopes.SYSTEMS_READ,
+				AuthorizationScopes.SYSTEMS_WRITE);
+		assertThat(user.getAuthorities()).extracting("authority")
+				.containsExactlyInAnyOrder(AuthorizationScopes.SYSTEMS_READ, AuthorizationScopes.SYSTEMS_WRITE);
+		assertThat(authorizationService.effectiveScopes(authentication))
+				.containsExactly(AuthorizationScopes.SYSTEMS_READ, AuthorizationScopes.SYSTEMS_WRITE);
+		assertThat(authorizationService.capabilities(authentication).systems())
+				.isEqualTo(new FeatureCapabilityResponse(true, true, true, true, true));
 		assertThat(authorizationService.capabilities(authentication).perfumes())
 				.isEqualTo(new FeatureCapabilityResponse(false, false, false, false, false));
+		assertThat(navigationCatalogQuery.findVisibleNavigation(user.getScopes())).extracting("key")
+				.containsExactly("systems");
 	}
 
 	private CustomUserDetails loadUser(String username) {
@@ -61,3 +72,4 @@ class SeededUserScopesIntegrationTest {
 		return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
 	}
 }
+

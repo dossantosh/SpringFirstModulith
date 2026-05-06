@@ -35,7 +35,7 @@ public class UserController {
 		this.userQueryService = userQueryService;
 	}
 
-	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_READ + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_READ + "')")
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<KeysetPage<UserSummaryView>> getUsers(@RequestParam(required = false) Long id,
 			@RequestParam(required = false) String username, @RequestParam(required = false) String email,
@@ -60,14 +60,14 @@ public class UserController {
 		return ResponseEntity.ok(users);
 	}
 
-	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_READ + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_READ + "')")
 	@GetMapping("/{id}")
 	public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
 
 		return ResponseEntity.ok(userQueryService.getUserDetails(id));
 	}
 
-	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_CREATE
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_WRITE
 			+ "') && @permissions.canApplyUserAccessChange(authentication, #request.access())")
 	@PostMapping
 	public ResponseEntity<UserDetailsView> createUser(@Valid @RequestBody CreateUserRequest request) {
@@ -81,7 +81,7 @@ public class UserController {
 		return ResponseEntity.status(201).body(userQueryService.getUserDetails(created.id()));
 	}
 
-	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_UPDATE
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_WRITE
 			+ "') && @permissions.canApplyUserAccessChange(authentication, #request.access())")
 	@PutMapping("/{id}")
 	public ResponseEntity<UserDetailsView> updateUser(@PathVariable Long id,
@@ -94,7 +94,7 @@ public class UserController {
 		return ResponseEntity.ok(userQueryService.getUserDetails(updated.id()));
 	}
 
-	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.USER_DELETE + "')")
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_WRITE + "')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
 		userCommandService.deleteById(id);
@@ -105,6 +105,6 @@ public class UserController {
 		if (request == null) {
 			return null;
 		}
-		return userAccessResolverService.resolve(request.roleIds(), request.moduleIds(), request.submoduleIds());
+		return userAccessResolverService.resolve(request.roleIds());
 	}
 }

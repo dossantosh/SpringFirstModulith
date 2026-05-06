@@ -11,7 +11,7 @@ import java.util.Set;
 @Service
 public class DefaultUserAccessPolicyService {
 
-	private static final String DEFAULT_ROLE_USER = "USER";
+	private static final String DEFAULT_ROLE_SYSTEMS = "SYSTEMS";
 
 	private final AccessCatalog accessCatalog;
 
@@ -20,9 +20,9 @@ public class DefaultUserAccessPolicyService {
 	}
 
 	public UserAccess defaultAccessForNewUser() {
-		Roles userRole = accessCatalog.findRoleByName(DEFAULT_ROLE_USER)
-				.orElseThrow(() -> new BusinessException("Default role '" + DEFAULT_ROLE_USER + "' was not found"));
+		Roles userRole = accessCatalog.findRoleByName(DEFAULT_ROLE_SYSTEMS)
+				.orElseThrow(() -> new BusinessException("Default role '" + DEFAULT_ROLE_SYSTEMS + "' was not found"));
 
-		return UserAccess.of(Set.of(userRole), Set.of(), Set.of());
+		return UserAccess.of(Set.of(userRole));
 	}
 }

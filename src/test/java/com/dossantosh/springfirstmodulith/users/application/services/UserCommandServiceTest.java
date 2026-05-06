@@ -41,10 +41,8 @@ class UserCommandServiceTest {
 
 	@Test
 	void modifyUser_whenValidChangesProvided_updatesExistingAggregateAndSaves() {
-		Modules usersModule = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules searchUsers = submodule(30L, "USERS_SEARCH", usersModule);
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(searchUsers));
+		UserAccess access = UserAccess.of(Set.of(userRole));
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "hashed", false, access);
 
@@ -64,17 +62,12 @@ class UserCommandServiceTest {
 		assertThat(saved.passwordHash()).isEqualTo("hashed");
 		assertThat(saved.enabled()).isFalse();
 		assertThat(saved.roles()).extracting(Roles::id, Roles::name).containsExactly(tuple(20L, "USER"));
-		assertThat(saved.modules()).extracting(Modules::id, Modules::name).containsExactly(tuple(10L, "Users"));
-		assertThat(saved.submodules()).extracting(Submodules::id, Submodules::name)
-				.containsExactly(tuple(30L, "USERS_SEARCH"));
 	}
 
 	@Test
 	void modifyUser_whenPasswordProvided_encodesBeforeSave() {
-		Modules usersModule = module(10L, "Users");
 		Roles userRole = role(20L, "USER");
-		Submodules searchUsers = submodule(30L, "USERS_SEARCH", usersModule);
-		UserAccess access = UserAccess.of(Set.of(userRole), Set.of(usersModule), Set.of(searchUsers));
+		UserAccess access = UserAccess.of(Set.of(userRole));
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "oldhash", false, access);
 		when(userCommandPort.findById(5L)).thenReturn(Optional.of(existingUser));
@@ -103,8 +96,7 @@ class UserCommandServiceTest {
 
 		when(userUniquenessPolicy.usernameExists("john")).thenReturn(false);
 		when(userUniquenessPolicy.emailExists("john@x.com")).thenReturn(false);
-		when(defaultUserAccessPolicyService.defaultAccessForNewUser())
-				.thenReturn(UserAccess.of(Set.of(userRole), Set.of(), Set.of()));
+		when(defaultUserAccessPolicyService.defaultAccessForNewUser()).thenReturn(UserAccess.of(Set.of(userRole)));
 		when(passwordEncoder.encode("secretPass1")).thenReturn("encodedPass");
 		when(userCommandPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -119,8 +111,6 @@ class UserCommandServiceTest {
 		assertThat(saved.enabled()).isTrue();
 		assertThat(saved.passwordHash()).isEqualTo("encodedPass");
 		assertThat(saved.roles()).extracting(Roles::id, Roles::name).containsExactly(tuple(2L, "USER"));
-		assertThat(saved.modules()).isEmpty();
-		assertThat(saved.submodules()).isEmpty();
 	}
 
 	@Test
@@ -141,12 +131,5 @@ class UserCommandServiceTest {
 	private static org.assertj.core.groups.Tuple tuple(Object... values) {
 		return org.assertj.core.groups.Tuple.tuple(values);
 	}
-
-	private static Modules module(Long id, String name) {
-		return Modules.reference(id, name);
-	}
-
-	private static Submodules submodule(Long id, String name, Modules module) {
-		return Submodules.reference(id, name, module);
-	}
 }
+

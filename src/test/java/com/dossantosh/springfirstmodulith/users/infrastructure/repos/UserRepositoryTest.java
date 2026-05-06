@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.TestPropertySource;
 
-import java.time.OffsetDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,17 +41,10 @@ class UserRepositoryTest {
 		long roleMedic = insertRole("MEDIC");
 		linkUserRole(userId, roleDoctor);
 		linkUserRole(userId, roleMedic);
-		long userReadScope = insertScope(AuthorizationScopes.USER_READ);
-		long userCreateScope = insertScope(AuthorizationScopes.USER_CREATE);
-		long reportScope = insertScope("report:read");
+		long userReadScope = insertScope(AuthorizationScopes.SYSTEMS_READ);
+		long userCreateScope = insertScope(AuthorizationScopes.SYSTEMS_WRITE);
 		linkRoleScope(roleDoctor, userReadScope);
 		linkRoleScope(roleMedic, userCreateScope);
-		grantUserScope(userId, reportScope, null);
-
-		long modUsers = insertModule("USERS");
-		long modBilling = insertModule("BILLING");
-		linkUserModule(userId, modUsers);
-		linkUserModule(userId, modBilling);
 
 		em.flush();
 		em.clear();
@@ -67,24 +59,7 @@ class UserRepositoryTest {
 		assertThat(p.getIsAdmin()).isFalse();
 
 		assertThat(p.getRoles()).containsExactlyInAnyOrder("DOCTOR", "MEDIC");
-		assertThat(p.getScopes()).containsExactly("report:read", AuthorizationScopes.USER_CREATE,
-				AuthorizationScopes.USER_READ);
-	}
-
-	@Test
-	void findUserAuthByUsername_ignoresExpiredDirectScopeGrants() {
-		long userId = insertUser("scoped", "scoped@x.com", "pw", true, false);
-		long expiredScope = insertScope(AuthorizationScopes.USER_DELETE);
-		long activeScope = insertScope(AuthorizationScopes.USER_UPDATE);
-		grantUserScope(userId, expiredScope, OffsetDateTime.now().minusDays(1));
-		grantUserScope(userId, activeScope, OffsetDateTime.now().plusDays(1));
-
-		em.flush();
-		em.clear();
-
-		UserAuthProjection p = userRepository.findUserAuthByUsername("scoped").orElseThrow();
-
-		assertThat(p.getScopes()).containsExactly(AuthorizationScopes.USER_UPDATE);
+		assertThat(p.getScopes()).containsExactly(AuthorizationScopes.SYSTEMS_READ, AuthorizationScopes.SYSTEMS_WRITE);
 	}
 
 	@Test
@@ -152,26 +127,5 @@ class UserRepositoryTest {
 				""").setParameter("r", roleId).setParameter("s", scopeId).executeUpdate();
 	}
 
-	private void grantUserScope(long userId, long scopeId, OffsetDateTime expiresAt) {
-		em.createNativeQuery("""
-				INSERT INTO user_scope_grants (id_user, id_scope, expires_at)
-				VALUES (:u, :s, :expiresAt)
-				""").setParameter("u", userId).setParameter("s", scopeId).setParameter("expiresAt", expiresAt)
-				.executeUpdate();
-	}
-
-	private long insertModule(String name) {
-		return ((Number) em.createNativeQuery("""
-				INSERT INTO modules (name) VALUES (:n)
-				RETURNING id_module
-				""").setParameter("n", name).getSingleResult()).longValue();
-	}
-
-	private void linkUserModule(long userId, long moduleId) {
-		em.createNativeQuery("""
-				INSERT INTO users_modules (id_user, id_module)
-				VALUES (:u, :m)
-				""").setParameter("u", userId).setParameter("m", moduleId).executeUpdate();
-	}
-
 }
+

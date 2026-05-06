@@ -4,6 +4,5 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-public record UserAccessRequest(@NotEmpty(message = "roleIds is required") List<Long> roleIds, List<Long> moduleIds,
-		List<Long> submoduleIds) {
+public record UserAccessRequest(@NotEmpty(message = "roleIds is required") List<Long> roleIds) {
 }
