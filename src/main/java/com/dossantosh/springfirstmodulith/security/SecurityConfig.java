@@ -5,6 +5,7 @@ import com.dossantosh.springfirstmodulith.security.login.JsonUsernamePasswordAut
 import com.dossantosh.springfirstmodulith.security.session.CurrentDataViewQuery;
 import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
 import com.dossantosh.springfirstmodulith.security.session.DataViewFromSessionFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -37,9 +38,10 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager,
 			DataViewFromSessionFilter dataViewFromSessionFilter,
-			CurrentSessionDataViewProvider currentSessionDataViewProvider) {
+			CurrentSessionDataViewProvider currentSessionDataViewProvider, ObjectMapper objectMapper) {
 
-		JsonUsernamePasswordAuthenticationFilter jsonLoginFilter = new JsonUsernamePasswordAuthenticationFilter();
+		JsonUsernamePasswordAuthenticationFilter jsonLoginFilter = new JsonUsernamePasswordAuthenticationFilter(
+				objectMapper);
 		jsonLoginFilter.setAuthenticationManager(authenticationManager);
 
 		jsonLoginFilter.setAuthenticationSuccessHandler((request, response, authentication) -> {
@@ -116,5 +118,10 @@ public class SecurityConfig {
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
+	}
+
+	@Bean
+	public ObjectMapper objectMapper() {
+		return new ObjectMapper();
 	}
 }
