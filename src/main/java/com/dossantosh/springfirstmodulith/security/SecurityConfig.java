@@ -37,7 +37,7 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager,
 			DataViewFromSessionFilter dataViewFromSessionFilter,
-			CurrentSessionDataViewProvider currentSessionDataViewProvider) throws Exception {
+			CurrentSessionDataViewProvider currentSessionDataViewProvider) {
 
 		JsonUsernamePasswordAuthenticationFilter jsonLoginFilter = new JsonUsernamePasswordAuthenticationFilter();
 		jsonLoginFilter.setAuthenticationManager(authenticationManager);
@@ -65,6 +65,8 @@ public class SecurityConfig {
 				.userDetailsService(customUserDetailsService).authorizeHttpRequests(auth -> auth
 
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+						.requestMatchers("/v3/api-docs/**").permitAll()
 
 						.requestMatchers("/api/auth/login", "/api/auth/csrf").permitAll()
 

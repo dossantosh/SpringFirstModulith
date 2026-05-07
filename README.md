@@ -552,7 +552,54 @@ docker compose down -v
 - Session-based authentication (no JWT)
 - Cookies configured as `HttpOnly`, `Secure`, `SameSite`
 - CSRF enabled for browser endpoints
-- Authorization enforced via roles, modules, and submodules
+- Authorization enforced in the backend. Roles are administrative groups; scopes are granular permissions used by protected actions.
+
+### Authorization Model
+
+- A role groups the scopes for one ERP module. For now, `SYSTEMS` grants `systems:read` and `systems:write`; `PERFUMES` grants `perfumes:read` and `perfumes:write`.
+- A scope uses the `module:action` format. The current actions are only `read` and `write`.
+- Users receive effective scopes through assigned roles. Direct per-user scope grants are intentionally not part of the current model.
+- Spring `GrantedAuthority` remains the internal mechanism for enforcement, but only scopes such as `systems:read` are granted as authorities.
+- Frontend responses expose stable roles, scopes, and navigation metadata; never raw Spring authorities.
+- Modules and submodules drive UI/navigation metadata. Backend access is still enforced by the required scope for each endpoint.
+- A submodule represents a frontend view identifier such as `USERS_SEARCH`, not a backend permission like read/write.
+- Navigation visibility is derived from `roles -> scopes -> submodule_required_scopes`.
+
+To protect a backend action, require the concrete scope:
+
+```java
+@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_READ + "')")
+@GetMapping("/api/users")
+```
+
+Do not protect business actions with roles, modules, or submodules:
+
+```java
+// Not allowed for authorization
+hasRole("ADMIN")
+hasAuthority("MODULE_SYSTEMS")
+hasAuthority("SUBMODULE_USERS_SEARCH")
+```
+
+If a user has `systems:read`, the user can execute the users read action because users currently belongs to the Systems module.
+If a user has navigation metadata but lacks the required scope, the backend must return `403`.
+
+Current-user authorization data is available from:
+
+```http
+GET /api/auth/me
+```
+
+The response includes `roles`, effective `scopes`, and navigation derived from those scopes. The frontend may use scopes for UX, but the backend remains the source of truth.
+
+To add a new permission:
+
+1. Add a module-level scope in `AuthorizationScopes`, for example `orders:read` and `orders:write`.
+2. Seed the scope in a Flyway migration.
+3. Assign the scope to one or more roles through `role_scopes`.
+4. Protect backend endpoints with the new scope.
+5. Add the matching frontend constant in `AUTH_SCOPES`.
+6. Use `scopeGuard`, `appHasScope`, or `AuthFacade.hasScope(...)` for UX visibility.
 
 ---
 

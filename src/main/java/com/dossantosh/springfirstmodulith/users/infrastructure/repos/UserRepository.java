@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Override
-	@EntityGraph(attributePaths = {"roles", "modules", "submodules"})
+	@EntityGraph(attributePaths = {"roles"})
 	Optional<User> findById(Long id);
 
 	boolean existsById(Long id);
@@ -40,17 +40,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			            WHERE ur.id_user = u.id_user
 			        ) AS roles,
 			        (
-			            SELECT array_agg(m.name)
-			            FROM modules m
-			            JOIN users_modules um ON m.id_module = um.id_module
-			            WHERE um.id_user = u.id_user
-			        ) AS modules,
-			        (
-			            SELECT array_agg(s.name)
-			            FROM submodules s
-			            JOIN users_submodules us ON s.id_submodule = us.id_submodule
-			            WHERE us.id_user = u.id_user
-			        ) AS submodules
+			            SELECT array_agg(scope_name ORDER BY scope_name)
+			            FROM (
+			                SELECT DISTINCT s.name AS scope_name
+			                FROM scopes s
+			                JOIN role_scopes rs ON s.id_scope = rs.id_scope
+			                JOIN users_roles ur ON rs.id_role = ur.id_role
+			                WHERE ur.id_user = u.id_user
+			            ) effective_scopes
+			        ) AS scopes
 			    FROM users u
 			    WHERE u.username = :username
 			""", nativeQuery = true)
@@ -80,6 +78,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			@Param("email") String email, @Param("lastId") Long lastId, @Param("limit") int limit,
 			@Param("direction") String direction);
 
-	@EntityGraph(attributePaths = {"roles", "modules", "submodules"})
+	@EntityGraph(attributePaths = {"roles"})
 	Optional<User> findFullUserById(Long id);
 }

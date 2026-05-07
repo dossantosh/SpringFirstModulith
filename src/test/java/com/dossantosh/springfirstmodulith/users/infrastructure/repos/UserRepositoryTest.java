@@ -1,5 +1,6 @@
 package com.dossantosh.springfirstmodulith.users.infrastructure.repos;
 
+import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
 import jakarta.persistence.EntityManager;
@@ -40,16 +41,10 @@ class UserRepositoryTest {
 		long roleMedic = insertRole("MEDIC");
 		linkUserRole(userId, roleDoctor);
 		linkUserRole(userId, roleMedic);
-
-		long modUsers = insertModule("USERS");
-		long modBilling = insertModule("BILLING");
-		linkUserModule(userId, modUsers);
-		linkUserModule(userId, modBilling);
-
-		long subCreate = insertSubmodule("CREATE", modUsers);
-		long subRead = insertSubmodule("READ", modUsers);
-		linkUserSubmodule(userId, subCreate);
-		linkUserSubmodule(userId, subRead);
+		long userReadScope = insertScope(AuthorizationScopes.SYSTEMS_READ);
+		long userCreateScope = insertScope(AuthorizationScopes.SYSTEMS_WRITE);
+		linkRoleScope(roleDoctor, userReadScope);
+		linkRoleScope(roleMedic, userCreateScope);
 
 		em.flush();
 		em.clear();
@@ -64,10 +59,7 @@ class UserRepositoryTest {
 		assertThat(p.getIsAdmin()).isFalse();
 
 		assertThat(p.getRoles()).containsExactlyInAnyOrder("DOCTOR", "MEDIC");
-
-		assertThat(p.getModules()).containsExactlyInAnyOrder("USERS", "BILLING");
-
-		assertThat(p.getSubmodules()).containsExactlyInAnyOrder("CREATE", "READ");
+		assertThat(p.getScopes()).containsExactly(AuthorizationScopes.SYSTEMS_READ, AuthorizationScopes.SYSTEMS_WRITE);
 	}
 
 	@Test
@@ -81,8 +73,7 @@ class UserRepositoryTest {
 		assertThat(p.getId()).isEqualTo(userId);
 
 		assertThat(p.getRoles()).isNull();
-		assertThat(p.getModules()).isNull();
-		assertThat(p.getSubmodules()).isNull();
+		assertThat(p.getScopes()).isNull();
 
 	}
 
@@ -122,32 +113,19 @@ class UserRepositoryTest {
 				""").setParameter("u", userId).setParameter("r", roleId).executeUpdate();
 	}
 
-	private long insertModule(String name) {
+	private long insertScope(String name) {
 		return ((Number) em.createNativeQuery("""
-				INSERT INTO modules (name) VALUES (:n)
-				RETURNING id_module
+				INSERT INTO scopes (name) VALUES (:n)
+				RETURNING id_scope
 				""").setParameter("n", name).getSingleResult()).longValue();
 	}
 
-	private void linkUserModule(long userId, long moduleId) {
+	private void linkRoleScope(long roleId, long scopeId) {
 		em.createNativeQuery("""
-				INSERT INTO users_modules (id_user, id_module)
-				VALUES (:u, :m)
-				""").setParameter("u", userId).setParameter("m", moduleId).executeUpdate();
+				INSERT INTO role_scopes (id_role, id_scope)
+				VALUES (:r, :s)
+				""").setParameter("r", roleId).setParameter("s", scopeId).executeUpdate();
 	}
 
-	private long insertSubmodule(String name, long moduleId) {
-		return ((Number) em.createNativeQuery("""
-				INSERT INTO submodules (name, id_module)
-				VALUES (:n, :m)
-				RETURNING id_submodule
-				""").setParameter("n", name).setParameter("m", moduleId).getSingleResult()).longValue();
-	}
-
-	private void linkUserSubmodule(long userId, long submoduleId) {
-		em.createNativeQuery("""
-				INSERT INTO users_submodules (id_user, id_submodule)
-				VALUES (:u, :s)
-				""").setParameter("u", userId).setParameter("s", submoduleId).executeUpdate();
-	}
 }
+

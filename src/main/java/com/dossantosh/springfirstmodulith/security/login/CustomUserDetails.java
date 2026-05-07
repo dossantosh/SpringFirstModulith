@@ -14,6 +14,8 @@ public class CustomUserDetails implements UserDetails {
 	private String password;
 	private Boolean enabled;
 	private Boolean isAdmin;
+	private List<String> roles;
+	private List<String> scopes;
 
 	private List<GrantedAuthority> authorities;
 
@@ -81,8 +83,24 @@ public class CustomUserDetails implements UserDetails {
 		this.isAdmin = isAdmin;
 	}
 
-	public void setAuthorities(List<GrantedAuthority> authorities) {
-		this.authorities = authorities;
+	public List<String> getRoles() {
+		return roles == null ? List.of() : roles;
+	}
+
+	public void setRoles(List<String> roles) {
+		this.roles = roles == null ? List.of() : List.copyOf(roles);
+	}
+
+	public List<String> getScopes() {
+		return scopes == null ? List.of() : scopes;
+	}
+
+	public void setScopes(List<String> scopes) {
+		this.scopes = scopes == null ? List.of() : List.copyOf(scopes);
+	}
+
+	public void setAuthorities(List<? extends GrantedAuthority> authorities) {
+		this.authorities = authorities == null ? List.of() : List.copyOf(authorities);
 	}
 
 	@Override

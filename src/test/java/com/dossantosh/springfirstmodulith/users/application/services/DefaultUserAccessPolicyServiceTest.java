@@ -1,9 +1,7 @@
 package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
-import com.dossantosh.springfirstmodulith.users.domain.Modules;
 import com.dossantosh.springfirstmodulith.users.domain.Roles;
-import com.dossantosh.springfirstmodulith.users.domain.Submodules;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import com.dossantosh.springfirstmodulith.users.domain.ports.AccessCatalog;
 import org.junit.jupiter.api.Test;
@@ -28,27 +26,22 @@ class DefaultUserAccessPolicyServiceTest {
 	private DefaultUserAccessPolicyService policyService;
 
 	@Test
-	void defaultAccessForNewUser_resolvesBusinessNamedDefaults() {
-		Roles role = Roles.reference(1L, "USER");
-		Modules module = Modules.reference(2L, "USERS");
-		Submodules submodule = Submodules.reference(3L, "READUSERS", module);
+	void defaultAccessForNewUser_resolvesDefaultRoleOnly() {
+		Roles role = Roles.reference(1L, "SYSTEMS");
 
-		when(accessCatalog.findRoleByName("USER")).thenReturn(Optional.of(role));
-		when(accessCatalog.findModuleByName("USERS")).thenReturn(Optional.of(module));
-		when(accessCatalog.findSubmoduleByModuleAndName("USERS", "READUSERS")).thenReturn(Optional.of(submodule));
+		when(accessCatalog.findRoleByName("SYSTEMS")).thenReturn(Optional.of(role));
 
 		UserAccess access = policyService.defaultAccessForNewUser();
 
 		assertThat(access.roles()).containsExactly(role);
-		assertThat(access.modules()).containsExactly(module);
-		assertThat(access.submodules()).containsExactly(submodule);
 	}
 
 	@Test
 	void defaultAccessForNewUser_whenRoleMissing_throwsBusinessException() {
-		when(accessCatalog.findRoleByName("USER")).thenReturn(Optional.empty());
+		when(accessCatalog.findRoleByName("SYSTEMS")).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> policyService.defaultAccessForNewUser()).isInstanceOf(BusinessException.class)
-				.hasMessageContaining("Default role 'USER' was not found");
+				.hasMessageContaining("Default role 'SYSTEMS' was not found");
 	}
 }
+

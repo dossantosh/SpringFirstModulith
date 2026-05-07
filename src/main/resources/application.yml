@@ -99,8 +99,8 @@ management:
       show-details: always
 
 springdoc:
-  show-actuator: true
-  use-management-port: true
+  show-actuator: false
+  use-management-port: false
   api-docs:
     path: /v3/api-docs
 
