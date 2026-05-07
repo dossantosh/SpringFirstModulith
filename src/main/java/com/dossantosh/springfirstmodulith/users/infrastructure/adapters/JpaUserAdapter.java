@@ -1,22 +1,18 @@
 package com.dossantosh.springfirstmodulith.users.infrastructure.adapters;
 
-import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthQuery;
-import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthView;
 import com.dossantosh.springfirstmodulith.users.application.ports.out.UserCommandPort;
 import com.dossantosh.springfirstmodulith.users.application.ports.out.UserQueryPort;
 import com.dossantosh.springfirstmodulith.users.domain.User;
 import com.dossantosh.springfirstmodulith.users.domain.ports.UserUniquenessPolicy;
-import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @Component
-class JpaUserAdapter implements UserCommandPort, UserQueryPort, UserUniquenessPolicy, UserAuthQuery {
+class JpaUserAdapter implements UserCommandPort, UserQueryPort, UserUniquenessPolicy {
 
 	private final UserRepository userRepository;
 
@@ -66,24 +62,8 @@ class JpaUserAdapter implements UserCommandPort, UserQueryPort, UserUniquenessPo
 		return userRepository.existsByEmail(email);
 	}
 
-	@Override
-	public Optional<UserAuthView> findByUsername(String username) {
-		return userRepository.findUserAuthByUsername(username).map(this::toAuthView);
-	}
-
 	private static UserSummaryRow toSummaryRow(UserProjection projection) {
 		return new UserSummaryRow(projection.getId(), projection.getUsername(), projection.getEmail(),
 				projection.getEnabled(), projection.getIsAdmin());
-	}
-
-	private UserAuthView toAuthView(UserAuthProjection projection) {
-		return new UserAuthView(projection.getId(), projection.getUsername(), projection.getEmail(),
-				projection.getPassword(), Boolean.TRUE.equals(projection.getEnabled()),
-				Boolean.TRUE.equals(projection.getIsAdmin()), emptyIfNull(projection.getRoles()),
-				emptyIfNull(projection.getScopes()));
-	}
-
-	private List<String> emptyIfNull(List<String> values) {
-		return values == null ? Collections.emptyList() : values;
 	}
 }
