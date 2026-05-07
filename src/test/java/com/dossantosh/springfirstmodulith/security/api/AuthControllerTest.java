@@ -6,6 +6,7 @@ import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
 import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationItemView;
 import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationModuleView;
+import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
 import org.junit.jupiter.api.Test;
@@ -128,13 +129,8 @@ class AuthControllerTest {
 	}
 
 	private CustomUserDetails customUserDetails(String username, List<String> roles, List<String> scopes) {
-		CustomUserDetails userDetails = new CustomUserDetails();
-		userDetails.setUsername(username);
-		userDetails.setEnabled(true);
-		userDetails.setRoles(roles);
-		userDetails.setScopes(scopes);
-		userDetails.setAuthorities(scopes.stream().map(SimpleGrantedAuthority::new).toList());
-		return userDetails;
+		return CustomUserDetails.from(new UserAuthView(1L, username, username + "@example.com", "secret", true, false,
+				roles, scopes));
 	}
 
 	private List<NavigationModuleView> navigationForScopes(java.util.Collection<String> scopes) {

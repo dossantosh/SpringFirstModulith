@@ -1,44 +1,52 @@
 package com.dossantosh.springfirstmodulith.security.login;
 
+import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthView;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class CustomUserDetails implements UserDetails {
 
-	private Long id;
-	private String username;
-	private String email;
-	private String password;
-	private Boolean enabled;
-	private Boolean isAdmin;
-	private List<String> roles;
-	private List<String> scopes;
+	private final Long id;
+	private final String username;
+	private final String email;
+	private final String password;
+	private final boolean enabled;
+	private final boolean isAdmin;
+	private final List<String> roles;
+	private final List<String> scopes;
 
-	private List<GrantedAuthority> authorities;
+	private final List<GrantedAuthority> authorities;
 
-	public CustomUserDetails() {
-	}
-
-	public CustomUserDetails(Long id, String username, String email, String password, Boolean enabled, Boolean isAdmin,
-			List<GrantedAuthority> authorities) {
+	private CustomUserDetails(Long id, String username, String email, String password, boolean enabled, boolean isAdmin,
+			List<String> roles, List<String> scopes, List<? extends GrantedAuthority> authorities) {
 		this.id = id;
-		this.username = username;
+		this.username = Objects.requireNonNull(username, "username cannot be null");
 		this.email = email;
-		this.password = password;
+		this.password = Objects.requireNonNull(password, "password cannot be null");
 		this.enabled = enabled;
 		this.isAdmin = isAdmin;
-		this.authorities = authorities;
+		this.roles = roles == null ? List.of() : List.copyOf(roles);
+		this.scopes = scopes == null ? List.of() : List.copyOf(scopes);
+		this.authorities = authorities == null ? List.of() : List.copyOf(authorities);
+	}
+
+	public static CustomUserDetails from(UserAuthView user) {
+		Objects.requireNonNull(user, "user cannot be null");
+
+		List<String> scopes = user.scopes() == null ? List.of() : List.copyOf(user.scopes());
+		List<SimpleGrantedAuthority> authorities = scopes.stream().map(SimpleGrantedAuthority::new).toList();
+
+		return new CustomUserDetails(user.id(), user.username(), user.email(), user.password(), user.enabled(),
+				user.isAdmin(), user.roles(), scopes, authorities);
 	}
 
 	public Long getId() {
 		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
 	}
 
 	@Override
@@ -46,16 +54,8 @@ public class CustomUserDetails implements UserDetails {
 		return username;
 	}
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
 	public String getEmail() {
 		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
 	}
 
 	@Override
@@ -63,49 +63,25 @@ public class CustomUserDetails implements UserDetails {
 		return password;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
 	public Boolean getEnabledValue() {
 		return enabled;
-	}
-
-	public void setEnabled(Boolean enabled) {
-		this.enabled = enabled;
 	}
 
 	public Boolean getIsAdmin() {
 		return isAdmin;
 	}
 
-	public void setIsAdmin(Boolean isAdmin) {
-		this.isAdmin = isAdmin;
-	}
-
 	public List<String> getRoles() {
-		return roles == null ? List.of() : roles;
-	}
-
-	public void setRoles(List<String> roles) {
-		this.roles = roles == null ? List.of() : List.copyOf(roles);
+		return roles;
 	}
 
 	public List<String> getScopes() {
-		return scopes == null ? List.of() : scopes;
-	}
-
-	public void setScopes(List<String> scopes) {
-		this.scopes = scopes == null ? List.of() : List.copyOf(scopes);
-	}
-
-	public void setAuthorities(List<? extends GrantedAuthority> authorities) {
-		this.authorities = authorities == null ? List.of() : List.copyOf(authorities);
+		return scopes;
 	}
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return authorities == null ? List.of() : authorities;
+		return authorities;
 	}
 
 	@Override
@@ -125,6 +101,6 @@ public class CustomUserDetails implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return Boolean.TRUE.equals(enabled);
+		return enabled;
 	}
 }
