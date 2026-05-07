@@ -39,11 +39,11 @@ class UserQueryServiceTest {
 		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
 				Direction.NEXT);
 
-		assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
-		assertThat(page.getNextId()).isEqualTo(11L);
-		assertThat(page.getPreviousId()).isEqualTo(10L);
-		assertThat(page.isHasNext()).isTrue();
-		assertThat(page.isHasPrevious()).isFalse();
+		assertThat(page.content()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
+		assertThat(page.nextId()).isEqualTo(11L);
+		assertThat(page.previousId()).isEqualTo(10L);
+		assertThat(page.hasNext()).isTrue();
+		assertThat(page.hasPrevious()).isFalse();
 	}
 
 	@Test
@@ -59,9 +59,9 @@ class UserQueryServiceTest {
 		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
 				Direction.NEXT);
 
-		assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
-		assertThat(page.isHasNext()).isFalse();
-		assertThat(page.isHasPrevious()).isFalse();
+		assertThat(page.content()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
+		assertThat(page.hasNext()).isFalse();
+		assertThat(page.hasPrevious()).isFalse();
 	}
 
 	@Test
@@ -79,11 +79,11 @@ class UserQueryServiceTest {
 		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, lastId, limit,
 				Direction.PREVIOUS);
 
-		assertThat(page.getContent()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
-		assertThat(page.getPreviousId()).isEqualTo(10L);
-		assertThat(page.getNextId()).isEqualTo(11L);
-		assertThat(page.isHasPrevious()).isTrue();
-		assertThat(page.isHasNext()).isTrue();
+		assertThat(page.content()).extracting(UserSummaryView::id).containsExactly(10L, 11L);
+		assertThat(page.previousId()).isEqualTo(10L);
+		assertThat(page.nextId()).isEqualTo(11L);
+		assertThat(page.hasPrevious()).isTrue();
+		assertThat(page.hasNext()).isTrue();
 	}
 
 	@Test
@@ -96,11 +96,11 @@ class UserQueryServiceTest {
 		KeysetPage<UserSummaryView> page = userQueryService.findUsersKeyset(null, null, null, null, limit,
 				Direction.NEXT);
 
-		assertThat(page.getContent()).isEmpty();
-		assertThat(page.getNextId()).isNull();
-		assertThat(page.getPreviousId()).isNull();
-		assertThat(page.isHasNext()).isFalse();
-		assertThat(page.isHasPrevious()).isFalse();
+		assertThat(page.content()).isEmpty();
+		assertThat(page.nextId()).isNull();
+		assertThat(page.previousId()).isNull();
+		assertThat(page.hasNext()).isFalse();
+		assertThat(page.hasPrevious()).isFalse();
 	}
 }
 

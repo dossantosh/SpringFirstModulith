@@ -58,8 +58,8 @@ class UserControllerAuthorizationTest {
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
 	void getUsers_whenUserHasSystemsReadScope_returnsUsers() {
-		KeysetPage<UserSummaryView> page = new KeysetPage<>();
-		page.setContent(List.of(new UserSummaryView(1L, "john", "john@example.com", true, false)));
+		KeysetPage<UserSummaryView> page = new KeysetPage<>(
+				List.of(new UserSummaryView(1L, "john", "john@example.com", true, false)), false, false, null, null);
 
 		when(userQueryService.findUsersKeyset(null, null, null, null, 25, Direction.NEXT)).thenReturn(page);
 
