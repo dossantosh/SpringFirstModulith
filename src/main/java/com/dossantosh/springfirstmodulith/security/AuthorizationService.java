@@ -3,6 +3,7 @@ package com.dossantosh.springfirstmodulith.security;
 import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class AuthorizationService {
 			return userDetails.getScopes();
 		}
 
-		return authentication.getAuthorities().stream().map(granted -> granted.getAuthority())
+		return authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority)
 				.filter(AuthorizationScopes::isScopeAuthority).sorted().toList();
 	}
 }
