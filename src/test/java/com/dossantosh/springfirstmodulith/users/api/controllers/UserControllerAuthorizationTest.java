@@ -6,15 +6,21 @@ import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.Permissions;
 import com.dossantosh.springfirstmodulith.users.api.requests.CreateUserRequest;
+import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserPersonalDataRequest;
+import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRolesRequest;
 import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRequest;
 import com.dossantosh.springfirstmodulith.users.api.requests.UserAccessRequest;
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
+import com.dossantosh.springfirstmodulith.users.application.services.UserPersonalDataService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
 import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserPersonalDataView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserRolesView;
 import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
-import com.dossantosh.springfirstmodulith.users.domain.Roles;
-import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.EmployeeStatus;
+import com.dossantosh.springfirstmodulith.users.domain.entities.Roles;
+import com.dossantosh.springfirstmodulith.users.domain.entities.User;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,9 +56,12 @@ class UserControllerAuthorizationTest {
 	@jakarta.annotation.Resource
 	private UserQueryService userQueryService;
 
+	@jakarta.annotation.Resource
+	private UserPersonalDataService userPersonalDataService;
+
 	@BeforeEach
 	void setUp() {
-		reset(userCommandService, userAccessResolverService, userQueryService);
+		reset(userCommandService, userAccessResolverService, userQueryService, userPersonalDataService);
 	}
 
 	@Test
@@ -79,6 +88,30 @@ class UserControllerAuthorizationTest {
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		assertThat(response.getBody()).isSameAs(details);
+	}
+
+	@Test
+	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
+	void getUserPersonalData_whenUserHasSystemsReadScope_returnsProfile() {
+		UserPersonalDataView personalData = personalDataView(1L);
+		when(userPersonalDataService.getPersonalData(1L)).thenReturn(personalData);
+
+		var response = userController.getUserPersonalData(1L);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isSameAs(personalData);
+	}
+
+	@Test
+	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
+	void getUserRoles_whenUserHasSystemsReadScope_returnsRoles() {
+		UserRolesView roles = rolesView(1L);
+		when(userQueryService.getUserRoles(1L)).thenReturn(roles);
+
+		var response = userController.getUserRoles(1L);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isSameAs(roles);
 	}
 
 	@Test
@@ -182,6 +215,61 @@ class UserControllerAuthorizationTest {
 
 	@Test
 	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
+	void updateUserPersonalData_withoutSystemsWriteScope_isDenied() {
+		UpdateUserPersonalDataRequest request = new UpdateUserPersonalDataRequest("EMP-7", "Ana", "Lopez",
+				"ana@company.local", null, null, null, null, null, null, null, null, null, null, null,
+				EmployeeStatus.ACTIVE, null, null);
+
+		assertThatThrownBy(() -> userController.updateUserPersonalData(7L, request))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verifyNoInteractions(userPersonalDataService);
+	}
+
+	@Test
+	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_WRITE)
+	void updateUserPersonalData_withSystemsWriteScope_returnsProfile() {
+		UpdateUserPersonalDataRequest request = new UpdateUserPersonalDataRequest("EMP-7", "Ana", "Lopez",
+				"ana@company.local", null, null, null, null, null, null, null, null, null, null, null,
+				EmployeeStatus.ACTIVE, null, null);
+		UserPersonalDataView personalData = personalDataView(7L);
+
+		when(userPersonalDataService.updatePersonalData(eq(7L), any())).thenReturn(personalData);
+
+		var response = userController.updateUserPersonalData(7L, request);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isSameAs(personalData);
+	}
+
+	@Test
+	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
+	void updateUserRoles_withoutSystemsWriteScope_isDenied() {
+		assertThatThrownBy(() -> userController.updateUserRoles(7L, new UpdateUserRolesRequest(List.of(1L))))
+				.isInstanceOf(AccessDeniedException.class);
+
+		verifyNoInteractions(userCommandService, userAccessResolverService, userQueryService);
+	}
+
+	@Test
+	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_WRITE)
+	void updateUserRoles_withSystemsWriteScope_returnsRoles() {
+		User updated = User.rehydrate(7L, "john", "john@example.com", true, "secretPass1", false, null);
+		UserRolesView roles = rolesView(7L);
+
+		when(userAccessResolverService.resolve(List.of(1L))).thenReturn(userAccess());
+		when(userCommandService.modifyUser(eq(7L), any())).thenReturn(updated);
+		when(userQueryService.getUserRoles(7L)).thenReturn(roles);
+
+		var response = userController.updateUserRoles(7L, new UpdateUserRolesRequest(List.of(1L)));
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(response.getBody()).isSameAs(roles);
+		verify(userAccessResolverService).resolve(List.of(1L));
+	}
+
+	@Test
+	@WithMockUser(authorities = AuthorizationScopes.SYSTEMS_READ)
 	void deleteUser_withoutSystemsWriteScope_isDenied() {
 		assertThatThrownBy(() -> userController.deleteUser(7L)).isInstanceOf(AccessDeniedException.class);
 
@@ -190,6 +278,15 @@ class UserControllerAuthorizationTest {
 
 	private UserDetailsView detailsView(Long id) {
 		return new UserDetailsView(id, "john", "john@example.com", true, false, Set.of());
+	}
+
+	private UserPersonalDataView personalDataView(Long id) {
+		return new UserPersonalDataView(id, "john", "EMP-" + id, "John", "Doe", "john@company.local", null, null, null,
+				null, null, null, null, null, null, null, null, EmployeeStatus.ACTIVE, null, null);
+	}
+
+	private UserRolesView rolesView(Long id) {
+		return new UserRolesView(id, "john", Set.of(), List.of());
 	}
 
 	private CreateUserRequest createRequestWithAccess() {
@@ -222,6 +319,10 @@ class UserControllerAuthorizationTest {
 		UserQueryService userQueryService() {
 			return mock(UserQueryService.class);
 		}
+
+		@Bean
+		UserPersonalDataService userPersonalDataService() {
+			return mock(UserPersonalDataService.class);
+		}
 	}
 }
-

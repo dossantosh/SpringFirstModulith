@@ -3,10 +3,15 @@ package com.dossantosh.springfirstmodulith.users.api.controllers;
 import com.dossantosh.springfirstmodulith.core.exceptions.GlobalExceptionHandler;
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
+import com.dossantosh.springfirstmodulith.users.application.services.UserPersonalDataService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
 import com.dossantosh.springfirstmodulith.users.application.views.RoleView;
 import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserPersonalDataView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserRolesView;
 import com.dossantosh.springfirstmodulith.users.domain.*;
+import com.dossantosh.springfirstmodulith.users.domain.entities.Roles;
+import com.dossantosh.springfirstmodulith.users.domain.entities.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +45,9 @@ class UserControllerTest {
 
 	@Mock
 	private UserQueryService userQueryService;
+
+	@Mock
+	private UserPersonalDataService userPersonalDataService;
 
 	@InjectMocks
 	private UserController userController;
@@ -112,6 +120,64 @@ class UserControllerTest {
 	}
 
 	@Test
+	void getUserPersonalData_returnsProfile() throws Exception {
+		when(userPersonalDataService.getPersonalData(7L)).thenReturn(personalDataView());
+
+		mockMvc.perform(get("/api/users/7/personal-data")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.employeeCode").value("EMP-0007"))
+				.andExpect(jsonPath("$.firstName").value("Ana"));
+	}
+
+	@Test
+	void updateUserPersonalData_whenValidRequest_returnsUpdatedProfile() throws Exception {
+		when(userPersonalDataService.updatePersonalData(eq(7L), any())).thenReturn(personalDataView());
+
+		String body = """
+				{
+				  "employeeCode":"EMP-0007",
+				  "firstName":"Ana",
+				  "lastName":"Lopez",
+				  "corporateEmail":"ana.lopez@company.local",
+				  "status":"ACTIVE",
+				  "contractType":"FULL_TIME"
+				}
+				""";
+
+		mockMvc.perform(put("/api/users/7/personal-data").contentType(MediaType.APPLICATION_JSON).content(body))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.employeeCode").value("EMP-0007"));
+	}
+
+	@Test
+	void getUserRoles_returnsAssignedAndAvailableRoles() throws Exception {
+		when(userQueryService.getUserRoles(7L)).thenReturn(rolesView());
+
+		mockMvc.perform(get("/api/users/7/roles")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.roles[0].name").value("SYSTEMS"))
+				.andExpect(jsonPath("$.availableRoles[1].name").value("PERFUMES"));
+	}
+
+	@Test
+	void updateUserRoles_whenValidRequest_returnsUpdatedRoles() throws Exception {
+		UserAccess access = UserAccess.of(Set.of(role(1L, "SYSTEMS"), role(2L, "PERFUMES")));
+
+		when(userAccessResolverService.resolve(List.of(1L, 2L))).thenReturn(access);
+		when(userCommandService.modifyUser(eq(7L), any()))
+				.thenReturn(User.rehydrate(7L, "ana", "ana@example.com", true, "hashed", false, access));
+		when(userQueryService.getUserRoles(7L)).thenReturn(rolesView());
+
+		String body = """
+				{
+				  "roleIds":[1,2]
+				}
+				""";
+
+		mockMvc.perform(put("/api/users/7/roles").contentType(MediaType.APPLICATION_JSON).content(body))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.availableRoles[0].name").value("SYSTEMS"));
+
+		verify(userAccessResolverService).resolve(List.of(1L, 2L));
+	}
+
+	@Test
 	void createUser_whenInvalidRequest_returnsBadRequest() throws Exception {
 		String invalidBody = """
 				{
@@ -130,8 +196,18 @@ class UserControllerTest {
 		return new UserDetailsView(id, username, email, true, false, Set.of(new RoleView(20L, "USER")));
 	}
 
+	private UserPersonalDataView personalDataView() {
+		return new UserPersonalDataView(7L, "ana", "EMP-0007", "Ana", "Lopez", "ana.lopez@company.local", null, null,
+				null, null, null, null, null, "Espana", "Analista", "Sistemas", null, EmployeeStatus.ACTIVE,
+				ContractType.FULL_TIME, null);
+	}
+
+	private UserRolesView rolesView() {
+		return new UserRolesView(7L, "ana", Set.of(new RoleView(1L, "SYSTEMS")),
+				List.of(new RoleView(1L, "SYSTEMS"), new RoleView(2L, "PERFUMES")));
+	}
+
 	private static Roles role(Long id, String name) {
 		return Roles.reference(id, name);
 	}
 }
-

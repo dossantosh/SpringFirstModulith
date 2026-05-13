@@ -104,8 +104,8 @@ class UserAuthScopesIntegrationTest {
 		assertThat(json.path("scopes").size()).isEqualTo(4);
 		assertThat(json.path("username").asText()).isEqualTo("john");
 		assertThat(java.util.stream.StreamSupport.stream(json.path("roles").spliterator(), false)
-				.map(com.fasterxml.jackson.databind.JsonNode::asText).toList()).containsExactlyInAnyOrder("SYSTEMS",
-						"PERFUMES");
+				.map(com.fasterxml.jackson.databind.JsonNode::asText).toList())
+				.containsExactlyInAnyOrder("SYSTEMS", "PERFUMES");
 	}
 
 	@Test
@@ -172,4 +172,3 @@ class UserAuthScopesIntegrationTest {
 	}
 
 }
-

@@ -129,22 +129,20 @@ class AuthControllerTest {
 	}
 
 	private CustomUserDetails customUserDetails(String username, List<String> roles, List<String> scopes) {
-		return CustomUserDetails.from(new UserAuthView(1L, username, username + "@example.com", "secret", true, false,
-				roles, scopes));
+		return CustomUserDetails
+				.from(new UserAuthView(1L, username, username + "@example.com", "secret", true, false, roles, scopes));
 	}
 
 	private List<NavigationModuleView> navigationForScopes(java.util.Collection<String> scopes) {
 		if (scopes.contains(AuthorizationScopes.SYSTEMS_READ)) {
-			return List.of(new NavigationModuleView("systems", "Sistemas", "settings",
-					List.of(new NavigationItemView("users_search", "Usuarios", "group", "/users/search", false,
-							null))));
+			return List.of(new NavigationModuleView("systems", "Sistemas", "settings", List
+					.of(new NavigationItemView("users_search", "Usuarios", "group", "/users/search", false, null))));
 		}
 		if (scopes.contains(AuthorizationScopes.PERFUMES_READ)) {
 			return List.of(new NavigationModuleView("perfumes", "Perfumes", "local_florist",
-					List.of(new NavigationItemView("perfumes_catalog", "Catálogo", "local_florist",
-							"/perfumes/catalog", true, "Módulo previsto para próximas fases"))));
+					List.of(new NavigationItemView("perfumes_catalog", "Catálogo", "local_florist", "/perfumes/catalog",
+							true, "Módulo previsto para próximas fases"))));
 		}
 		return List.of();
 	}
 }
-

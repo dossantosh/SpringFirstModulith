@@ -63,4 +63,3 @@ class SeededUserScopesIntegrationTest {
 		return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
 	}
 }
-

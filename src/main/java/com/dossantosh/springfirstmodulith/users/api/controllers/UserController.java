@@ -4,14 +4,20 @@ import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.core.page.Direction;
 import com.dossantosh.springfirstmodulith.core.page.KeysetPage;
 import com.dossantosh.springfirstmodulith.users.api.requests.CreateUserRequest;
+import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserPersonalDataRequest;
+import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRolesRequest;
 import com.dossantosh.springfirstmodulith.users.api.requests.UpdateUserRequest;
 import com.dossantosh.springfirstmodulith.users.api.requests.UserAccessRequest;
 import com.dossantosh.springfirstmodulith.users.application.services.UserAccessResolverService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserCommandService;
+import com.dossantosh.springfirstmodulith.users.application.services.UserPersonalDataService;
 import com.dossantosh.springfirstmodulith.users.application.services.UserQueryService;
+import com.dossantosh.springfirstmodulith.users.application.views.UserPersonalDataView;
+import com.dossantosh.springfirstmodulith.users.application.views.UserRolesView;
 import com.dossantosh.springfirstmodulith.users.application.views.UserDetailsView;
 import com.dossantosh.springfirstmodulith.users.application.views.UserSummaryView;
-import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.EmployeeProfileChanges;
+import com.dossantosh.springfirstmodulith.users.domain.entities.User;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import com.dossantosh.springfirstmodulith.users.domain.UserChanges;
 import jakarta.validation.Valid;
@@ -27,12 +33,14 @@ public class UserController {
 	private final UserCommandService userCommandService;
 	private final UserAccessResolverService userAccessResolverService;
 	private final UserQueryService userQueryService;
+	private final UserPersonalDataService userPersonalDataService;
 
 	public UserController(UserCommandService userCommandService, UserAccessResolverService userAccessResolverService,
-			UserQueryService userQueryService) {
+			UserQueryService userQueryService, UserPersonalDataService userPersonalDataService) {
 		this.userCommandService = userCommandService;
 		this.userAccessResolverService = userAccessResolverService;
 		this.userQueryService = userQueryService;
+		this.userPersonalDataService = userPersonalDataService;
 	}
 
 	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_READ + "')")
@@ -65,6 +73,36 @@ public class UserController {
 	public ResponseEntity<UserDetailsView> getUserDetails(@PathVariable Long id) {
 
 		return ResponseEntity.ok(userQueryService.getUserDetails(id));
+	}
+
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_READ + "')")
+	@GetMapping(value = "/{id}/personal-data", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<UserPersonalDataView> getUserPersonalData(@PathVariable Long id) {
+		return ResponseEntity.ok(userPersonalDataService.getPersonalData(id));
+	}
+
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_WRITE + "')")
+	@PutMapping(value = "/{id}/personal-data", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<UserPersonalDataView> updateUserPersonalData(@PathVariable Long id,
+			@Valid @RequestBody UpdateUserPersonalDataRequest request) {
+		UserPersonalDataView updated = userPersonalDataService.updatePersonalData(id,
+				toEmployeeProfileChanges(request));
+		return ResponseEntity.ok(updated);
+	}
+
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_READ + "')")
+	@GetMapping(value = "/{id}/roles", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<UserRolesView> getUserRoles(@PathVariable Long id) {
+		return ResponseEntity.ok(userQueryService.getUserRoles(id));
+	}
+
+	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_WRITE + "')")
+	@PutMapping(value = "/{id}/roles", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<UserRolesView> updateUserRoles(@PathVariable Long id,
+			@Valid @RequestBody UpdateUserRolesRequest request) {
+		UserAccess access = userAccessResolverService.resolve(request.roleIds());
+		User updated = userCommandService.modifyUser(id, new UserChanges(null, null, null, null, null, access));
+		return ResponseEntity.ok(userQueryService.getUserRoles(updated.id()));
 	}
 
 	@PreAuthorize("@permissions.hasScope(authentication, '" + AuthorizationScopes.SYSTEMS_WRITE
@@ -106,5 +144,13 @@ public class UserController {
 			return null;
 		}
 		return userAccessResolverService.resolve(request.roleIds());
+	}
+
+	private EmployeeProfileChanges toEmployeeProfileChanges(UpdateUserPersonalDataRequest request) {
+		return new EmployeeProfileChanges(request.employeeCode(), request.firstName(), request.lastName(),
+				request.corporateEmail(), request.phone(), request.identityDocument(), request.birthDate(),
+				request.address(), request.city(), request.stateProvince(), request.postalCode(), request.country(),
+				request.jobTitle(), request.department(), request.hireDate(), request.status(), request.contractType(),
+				request.internalNotes());
 	}
 }

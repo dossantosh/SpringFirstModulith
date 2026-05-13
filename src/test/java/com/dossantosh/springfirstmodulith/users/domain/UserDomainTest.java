@@ -1,7 +1,8 @@
 package com.dossantosh.springfirstmodulith.users.domain;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
-import com.dossantosh.springfirstmodulith.users.domain.*;
+import com.dossantosh.springfirstmodulith.users.domain.entities.Roles;
+import com.dossantosh.springfirstmodulith.users.domain.entities.User;
 import com.dossantosh.springfirstmodulith.users.domain.ports.UserUniquenessPolicy;
 import org.junit.jupiter.api.Test;
 
@@ -114,4 +115,3 @@ class UserDomainTest {
 		return Roles.reference(id, name);
 	}
 }
-

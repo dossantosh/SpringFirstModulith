@@ -1,8 +1,8 @@
 package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
-import com.dossantosh.springfirstmodulith.users.application.ports.out.UserAccessLookupPort;
-import com.dossantosh.springfirstmodulith.users.domain.Roles;
+import com.dossantosh.springfirstmodulith.users.application.ports.out.RoleRepository;
+import com.dossantosh.springfirstmodulith.users.domain.entities.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 class UserAccessResolverServiceTest {
 
 	@Mock
-	private UserAccessLookupPort userAccessLookupPort;
+	private RoleRepository roleRepository;
 
 	@InjectMocks
 	private UserAccessResolverService userAccessResolverService;
@@ -29,7 +29,7 @@ class UserAccessResolverServiceTest {
 	void resolve_whenRoleIdsExist_returnsUserAccess() {
 		Roles userRole = role(20L, "USER");
 
-		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of(userRole));
+		when(roleRepository.findRolesById(List.of(20L))).thenReturn(List.of(userRole));
 
 		UserAccess access = userAccessResolverService.resolve(List.of(20L));
 
@@ -40,7 +40,7 @@ class UserAccessResolverServiceTest {
 	void resolve_whenDuplicateRoleIdsProvided_deduplicatesBeforeLookup() {
 		Roles userRole = role(20L, "USER");
 
-		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of(userRole));
+		when(roleRepository.findRolesById(List.of(20L))).thenReturn(List.of(userRole));
 
 		UserAccess access = userAccessResolverService.resolve(List.of(20L, 20L));
 
@@ -49,7 +49,7 @@ class UserAccessResolverServiceTest {
 
 	@Test
 	void resolve_whenAnyRoleIdMissing_throwsBusinessException() {
-		when(userAccessLookupPort.findRolesById(List.of(20L))).thenReturn(List.of());
+		when(roleRepository.findRolesById(List.of(20L))).thenReturn(List.of());
 
 		assertThatThrownBy(() -> userAccessResolverService.resolve(List.of(20L)))
 				.isInstanceOf(BusinessException.class).hasMessageContaining("roles");
@@ -65,4 +65,3 @@ class UserAccessResolverServiceTest {
 		return Roles.reference(id, name);
 	}
 }
-

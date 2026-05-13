@@ -18,17 +18,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {"spring.datasource.url=jdbc:tc:postgresql:17-alpine:///testdb",
 		"spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver",
 		"spring.jpa.hibernate.ddl-auto=create-drop"})
-class UserRepositoryTest {
+class SpringDataUserJpaRepositoryTest {
 
 	@Autowired
-	private UserRepository userRepository;
+	private SpringDataUserJpaRepository springDataUserJpaRepository;
 
 	@PersistenceContext
 	private EntityManager em;
 
 	@Test
 	void findUserAuthByUsername_returnsEmpty_whenUserNotFound() {
-		Optional<UserAuthProjection> res = userRepository.findUserAuthByUsername("nope");
+		Optional<UserAuthProjection> res = springDataUserJpaRepository.findUserAuthByUsername("nope");
 		assertThat(res).isEmpty();
 	}
 
@@ -49,7 +49,7 @@ class UserRepositoryTest {
 		em.flush();
 		em.clear();
 
-		UserAuthProjection p = userRepository.findUserAuthByUsername("john").orElseThrow();
+		UserAuthProjection p = springDataUserJpaRepository.findUserAuthByUsername("john").orElseThrow();
 
 		assertThat(p.getId()).isEqualTo(userId);
 		assertThat(p.getUsername()).isEqualTo("john");
@@ -68,7 +68,7 @@ class UserRepositoryTest {
 		em.flush();
 		em.clear();
 
-		UserAuthProjection p = userRepository.findUserAuthByUsername("solo").orElseThrow();
+		UserAuthProjection p = springDataUserJpaRepository.findUserAuthByUsername("solo").orElseThrow();
 
 		assertThat(p.getId()).isEqualTo(userId);
 
@@ -85,7 +85,7 @@ class UserRepositoryTest {
 		em.flush();
 		em.clear();
 
-		var res = userRepository.findUsersKeyset(null, "a", null, u1, 10, "NEXT");
+		var res = springDataUserJpaRepository.findUsersKeyset(null, "a", null, u1, 10, "NEXT");
 		assertThat(res).extracting(UserProjection::getUsername).containsExactly("a2", "a3");
 
 	}
@@ -128,4 +128,3 @@ class UserRepositoryTest {
 	}
 
 }
-

@@ -49,15 +49,16 @@ class JdbcNavigationCatalogQuery implements NavigationCatalogQuery {
 		}
 
 		MapSqlParameterSource params = new MapSqlParameterSource("scopes", scopes);
-		List<NavigationRow> rows = jdbcTemplate.query(SQL, params, (rs, rowNum) -> new NavigationRow(
-				rs.getString("module_key"), rs.getString("module_label"), rs.getString("module_icon"),
-				rs.getString("item_key"), rs.getString("item_label"), rs.getString("item_icon"),
-				rs.getString("item_route"), rs.getBoolean("item_disabled"), rs.getString("item_hint")));
+		List<NavigationRow> rows = jdbcTemplate.query(SQL, params,
+				(rs, rowNum) -> new NavigationRow(rs.getString("module_key"), rs.getString("module_label"),
+						rs.getString("module_icon"), rs.getString("item_key"), rs.getString("item_label"),
+						rs.getString("item_icon"), rs.getString("item_route"), rs.getBoolean("item_disabled"),
+						rs.getString("item_hint")));
 
 		LinkedHashMap<String, ModuleBuilder> modules = new LinkedHashMap<>();
 		for (NavigationRow row : rows) {
-			modules.computeIfAbsent(row.moduleKey(),
-					key -> new ModuleBuilder(key, row.moduleLabel(), row.moduleIcon())).addItem(row);
+			modules.computeIfAbsent(row.moduleKey(), key -> new ModuleBuilder(key, row.moduleLabel(), row.moduleIcon()))
+					.addItem(row);
 		}
 
 		return modules.values().stream().map(ModuleBuilder::build).toList();

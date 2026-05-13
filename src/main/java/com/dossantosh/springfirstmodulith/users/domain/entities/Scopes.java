@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.users.domain;
+package com.dossantosh.springfirstmodulith.users.domain.entities;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
 import jakarta.persistence.*;

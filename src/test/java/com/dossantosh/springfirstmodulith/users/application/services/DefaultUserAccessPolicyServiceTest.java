@@ -1,9 +1,9 @@
 package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
-import com.dossantosh.springfirstmodulith.users.domain.Roles;
+import com.dossantosh.springfirstmodulith.users.application.ports.out.RoleRepository;
+import com.dossantosh.springfirstmodulith.users.domain.entities.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
-import com.dossantosh.springfirstmodulith.users.domain.ports.AccessCatalog;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 class DefaultUserAccessPolicyServiceTest {
 
 	@Mock
-	private AccessCatalog accessCatalog;
+	private RoleRepository roleRepository;
 
 	@InjectMocks
 	private DefaultUserAccessPolicyService policyService;
@@ -29,7 +29,7 @@ class DefaultUserAccessPolicyServiceTest {
 	void defaultAccessForNewUser_resolvesDefaultRoleOnly() {
 		Roles role = Roles.reference(1L, "SYSTEMS");
 
-		when(accessCatalog.findRoleByName("SYSTEMS")).thenReturn(Optional.of(role));
+		when(roleRepository.findRoleByName("SYSTEMS")).thenReturn(Optional.of(role));
 
 		UserAccess access = policyService.defaultAccessForNewUser();
 
@@ -38,10 +38,9 @@ class DefaultUserAccessPolicyServiceTest {
 
 	@Test
 	void defaultAccessForNewUser_whenRoleMissing_throwsBusinessException() {
-		when(accessCatalog.findRoleByName("SYSTEMS")).thenReturn(Optional.empty());
+		when(roleRepository.findRoleByName("SYSTEMS")).thenReturn(Optional.empty());
 
 		assertThatThrownBy(() -> policyService.defaultAccessForNewUser()).isInstanceOf(BusinessException.class)
 				.hasMessageContaining("Default role 'SYSTEMS' was not found");
 	}
 }
-

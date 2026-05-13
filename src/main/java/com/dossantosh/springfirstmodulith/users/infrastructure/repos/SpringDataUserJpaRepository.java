@@ -1,6 +1,6 @@
 package com.dossantosh.springfirstmodulith.users.infrastructure.repos;
 
-import com.dossantosh.springfirstmodulith.users.domain.User;
+import com.dossantosh.springfirstmodulith.users.domain.entities.User;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserProjection;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface SpringDataUserJpaRepository extends JpaRepository<User, Long> {
 
 	@Override
 	@EntityGraph(attributePaths = {"roles"})

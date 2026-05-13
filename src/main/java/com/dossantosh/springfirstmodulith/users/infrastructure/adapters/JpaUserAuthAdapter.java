@@ -3,7 +3,7 @@ package com.dossantosh.springfirstmodulith.users.infrastructure.adapters;
 import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthQuery;
 import com.dossantosh.springfirstmodulith.users.api.ports.login.UserAuthView;
 import com.dossantosh.springfirstmodulith.users.infrastructure.projections.UserAuthProjection;
-import com.dossantosh.springfirstmodulith.users.infrastructure.repos.UserRepository;
+import com.dossantosh.springfirstmodulith.users.infrastructure.repos.SpringDataUserJpaRepository;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -13,15 +13,15 @@ import java.util.Optional;
 @Component
 class JpaUserAuthAdapter implements UserAuthQuery {
 
-	private final UserRepository userRepository;
+	private final SpringDataUserJpaRepository springDataUserJpaRepository;
 
-	JpaUserAuthAdapter(UserRepository userRepository) {
-		this.userRepository = userRepository;
+	JpaUserAuthAdapter(SpringDataUserJpaRepository springDataUserJpaRepository) {
+		this.springDataUserJpaRepository = springDataUserJpaRepository;
 	}
 
 	@Override
 	public Optional<UserAuthView> findByUsername(String username) {
-		return userRepository.findUserAuthByUsername(username).map(JpaUserAuthAdapter::toAuthView);
+		return springDataUserJpaRepository.findUserAuthByUsername(username).map(JpaUserAuthAdapter::toAuthView);
 	}
 
 	private static UserAuthView toAuthView(UserAuthProjection projection) {

@@ -1,8 +1,8 @@
 package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
-import com.dossantosh.springfirstmodulith.users.application.ports.out.UserAccessLookupPort;
-import com.dossantosh.springfirstmodulith.users.domain.Roles;
+import com.dossantosh.springfirstmodulith.users.application.ports.out.RoleRepository;
+import com.dossantosh.springfirstmodulith.users.domain.entities.Roles;
 import com.dossantosh.springfirstmodulith.users.domain.UserAccess;
 import org.springframework.stereotype.Service;
 
@@ -13,16 +13,16 @@ import java.util.Set;
 @Service
 public class UserAccessResolverService {
 
-	private final UserAccessLookupPort userAccessLookupPort;
+	private final RoleRepository roleRepository;
 
-	public UserAccessResolverService(UserAccessLookupPort userAccessLookupPort) {
-		this.userAccessLookupPort = userAccessLookupPort;
+	public UserAccessResolverService(RoleRepository roleRepository) {
+		this.roleRepository = roleRepository;
 	}
 
 	public UserAccess resolve(List<Long> roleIds) {
 		Set<Long> distinctRoleIds = toRequiredDistinctIds(roleIds, "roleIds");
 
-		Set<Roles> roles = new LinkedHashSet<>(userAccessLookupPort.findRolesById(List.copyOf(distinctRoleIds)));
+		Set<Roles> roles = new LinkedHashSet<>(roleRepository.findRolesById(List.copyOf(distinctRoleIds)));
 
 		if (roles.size() != distinctRoleIds.size()) {
 			throw new BusinessException("One or more roles were not found");

@@ -1,9 +1,10 @@
 package com.dossantosh.springfirstmodulith.users.application.services;
 
 import com.dossantosh.springfirstmodulith.core.exceptions.custom.BusinessException;
-import com.dossantosh.springfirstmodulith.users.application.ports.out.UserCommandPort;
+import com.dossantosh.springfirstmodulith.users.application.ports.out.UserRepository;
 import com.dossantosh.springfirstmodulith.users.domain.*;
-import com.dossantosh.springfirstmodulith.users.domain.ports.UserUniquenessPolicy;
+import com.dossantosh.springfirstmodulith.users.domain.entities.Roles;
+import com.dossantosh.springfirstmodulith.users.domain.entities.User;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,13 +26,10 @@ import static org.mockito.Mockito.*;
 class UserCommandServiceTest {
 
 	@Mock
-	private UserCommandPort userCommandPort;
+	private UserRepository userRepository;
 
 	@Mock
 	private DefaultUserAccessPolicyService defaultUserAccessPolicyService;
-
-	@Mock
-	private UserUniquenessPolicy userUniquenessPolicy;
 
 	@Mock
 	private PasswordEncoder passwordEncoder;
@@ -46,15 +44,15 @@ class UserCommandServiceTest {
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "hashed", false, access);
 
-		when(userCommandPort.findById(5L)).thenReturn(Optional.of(existingUser));
-		when(userCommandPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(userRepository.findById(5L)).thenReturn(Optional.of(existingUser));
+		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		UserChanges incoming = new UserChanges(null, "new@x.com", false, null, null, access);
 
 		userCommandService.modifyUser(5L, incoming);
 
 		ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-		verify(userCommandPort).save(captor.capture());
+		verify(userRepository).save(captor.capture());
 
 		User saved = captor.getValue();
 		assertThat(saved.id()).isEqualTo(5L);
@@ -70,20 +68,20 @@ class UserCommandServiceTest {
 		UserAccess access = UserAccess.of(Set.of(userRole));
 
 		User existingUser = User.rehydrate(5L, "john", "old@x.com", true, "oldhash", false, access);
-		when(userCommandPort.findById(5L)).thenReturn(Optional.of(existingUser));
+		when(userRepository.findById(5L)).thenReturn(Optional.of(existingUser));
 		when(passwordEncoder.encode("newSecret123")).thenReturn("encodedSecret");
-		when(userCommandPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		userCommandService.modifyUser(5L, new UserChanges(null, null, null, "newSecret123", null, null));
 
 		ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-		verify(userCommandPort).save(captor.capture());
+		verify(userRepository).save(captor.capture());
 		assertThat(captor.getValue().passwordHash()).isEqualTo("encodedSecret");
 	}
 
 	@Test
     void modifyUser_whenMissing_throwsEntityNotFound() {
-        when(userCommandPort.findById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userCommandService.modifyUser(99L, new UserChanges(null, null, null, null, null, null)))
                 .isInstanceOf(EntityNotFoundException.class)
@@ -94,18 +92,18 @@ class UserCommandServiceTest {
 	void createUser_assignsDefaultAccessAndEncodesPassword() {
 		Roles userRole = role(2L, "USER");
 
-		when(userUniquenessPolicy.usernameExists("john")).thenReturn(false);
-		when(userUniquenessPolicy.emailExists("john@x.com")).thenReturn(false);
+		when(userRepository.usernameExists("john")).thenReturn(false);
+		when(userRepository.emailExists("john@x.com")).thenReturn(false);
 		when(defaultUserAccessPolicyService.defaultAccessForNewUser()).thenReturn(UserAccess.of(Set.of(userRole)));
 		when(passwordEncoder.encode("secretPass1")).thenReturn("encodedPass");
-		when(userCommandPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		User newUser = new User("john", "john@x.com", "secretPass1", false);
 
 		userCommandService.createUser(newUser);
 
 		ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
-		verify(userCommandPort).save(captor.capture());
+		verify(userRepository).save(captor.capture());
 
 		User saved = captor.getValue();
 		assertThat(saved.enabled()).isTrue();
@@ -115,7 +113,7 @@ class UserCommandServiceTest {
 
 	@Test
     void createUser_whenUsernameExists_throwsBusinessException() {
-        when(userUniquenessPolicy.usernameExists("john")).thenReturn(true);
+        when(userRepository.usernameExists("john")).thenReturn(true);
 
         assertThatThrownBy(() -> userCommandService.createUser(new User("john", "john@x.com", "secretPass1", false)))
                 .isInstanceOf(BusinessException.class)
@@ -132,4 +130,3 @@ class UserCommandServiceTest {
 		return org.assertj.core.groups.Tuple.tuple(values);
 	}
 }
-
