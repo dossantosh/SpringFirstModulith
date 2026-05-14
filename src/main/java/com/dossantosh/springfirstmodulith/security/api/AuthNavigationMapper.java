@@ -2,8 +2,8 @@ package com.dossantosh.springfirstmodulith.security.api;
 
 import java.util.List;
 
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationItemView;
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationModuleView;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationItemView;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationModuleView;
 
 final class AuthNavigationMapper {
 

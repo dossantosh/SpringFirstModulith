@@ -6,7 +6,7 @@ import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.api.AuthController;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
 import com.dossantosh.springfirstmodulith.security.session.CurrentSessionDataViewProvider;
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationCatalogQuery;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

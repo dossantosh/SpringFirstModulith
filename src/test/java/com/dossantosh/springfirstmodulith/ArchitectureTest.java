@@ -29,7 +29,8 @@ class ArchitectureTest {
 				.doNotHaveFullyQualifiedName(SpringfirstmodulithApplication.class.getName()).and()
 				.doNotHaveSimpleName("package-info").should()
 				.resideInAnyPackage(BASE_PACKAGE + ".core..", BASE_PACKAGE + ".perfumes..",
-						BASE_PACKAGE + ".security..", BASE_PACKAGE + ".users..", BASE_PACKAGE + ".authorization..")
+						BASE_PACKAGE + ".security..", BASE_PACKAGE + ".users..", BASE_PACKAGE + ".authorization..",
+						BASE_PACKAGE + ".navigation..")
 				.because("production code should live inside a declared modulith module").check(IMPORTED_CLASSES);
 	}
 

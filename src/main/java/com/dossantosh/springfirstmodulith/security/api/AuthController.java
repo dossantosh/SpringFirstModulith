@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import com.dossantosh.springfirstmodulith.security.session.CurrentDataViewQuery;
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationCatalogQuery;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;

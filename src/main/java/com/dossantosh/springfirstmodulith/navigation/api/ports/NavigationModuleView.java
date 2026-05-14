@@ -1,4 +1,4 @@
-package com.dossantosh.springfirstmodulith.users.api.ports.navigation;
+package com.dossantosh.springfirstmodulith.navigation.api.ports;
 
 import java.util.List;
 

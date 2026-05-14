@@ -1,8 +1,8 @@
-package com.dossantosh.springfirstmodulith.users.infrastructure.adapters;
+package com.dossantosh.springfirstmodulith.navigation.infrastructure.adapters;
 
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationItemView;
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationModuleView;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationCatalogQuery;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationItemView;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationModuleView;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;

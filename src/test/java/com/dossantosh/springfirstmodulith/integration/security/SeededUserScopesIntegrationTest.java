@@ -4,7 +4,7 @@ import com.dossantosh.springfirstmodulith.authorization.AuthorizationScopes;
 import com.dossantosh.springfirstmodulith.security.AuthorizationService;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetails;
 import com.dossantosh.springfirstmodulith.security.login.CustomUserDetailsService;
-import com.dossantosh.springfirstmodulith.users.api.ports.navigation.NavigationCatalogQuery;
+import com.dossantosh.springfirstmodulith.navigation.api.ports.NavigationCatalogQuery;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
